@@ -1,0 +1,29 @@
+[project]
+name = "soft-manager"
+version = "0.1.0"
+description = "Sistema administrador de ventas"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "boto3>=1.40.17",
+    "channels[daphne]>=4.3.1",
+    "django>=5.2.5",
+    "django-redis>=6.0.0",
+    "djangorestframework>=3.16.1",
+    "flask>=3.1.2",
+    "mssql-django>=1.6",
+    "numpy>=2.3.2",
+    "pandas>=2.3.2",
+    "pyrefly>=0.30.0",
+    "ruff>=0.12.10",
+]
+
+[tool]
+
+[tool.pyrefly]
+project-includes = ["**/*"]
+project-excludes = [
+    "**/node_modules",
+    "**/__pycache__",
+    '**/*venv/**\*',
+]

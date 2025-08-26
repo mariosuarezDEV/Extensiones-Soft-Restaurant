@@ -103,6 +103,7 @@ class Empresas(models.Model):
         verbose_name_plural = "Empresas"
 
     def __str__(self):
+        # pyrefly: ignore  # missing-attribute
         return f"Empresa {self.nombre} con id {self.id}"
 
 
