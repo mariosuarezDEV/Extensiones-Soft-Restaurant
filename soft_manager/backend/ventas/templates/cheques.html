@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block contenido %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <h1 class="fs-1 fw-bold">Lista de Cheques</h1>
+                <table class="table table-hover table-striped align-middle text-center">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Folio</th>
+                            <th>Fecha</th>
+                            <th>Mesa</th>
+                            <th>Monto</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cheque in cheques %}
+                        <tr>
+                            <td>{{ cheque.folio }}</td>
+                            <td>{{ cheque.numcheque }}</td>
+                            <td>{{ cheque.fecha }}</td>
+                            <td>{{ cheque.mesa }}</td>
+                            <td>${{ cheque.total }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock contenido %}
