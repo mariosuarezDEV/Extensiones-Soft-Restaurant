@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, render_template, request
 import pymongo
 import requests as req
-from datetime import datetime
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 
@@ -25,11 +25,50 @@ def mantenimiento():
     if request.method == "GET":
         return render_template("mantenimiento.html")
     if request.method == "POST":
+        # Datos del formulario
         fecha_inicio = request.form.get("fecha_inicio")
         fecha_fin = request.form.get("fecha_fin")
         sucursal = request.form.get("sucursal")
+        # Nombre del mes actual
+        mes_actual = datetime.now().strftime("%m")
+        # Nombre de la coleccion
+        colecion = f"{mes_actual}_{sucursal}"
+
+        # Obtener todas las fechas entre fecha_inicio y fecha_fin
+        fechas = []
+        inicio = datetime.strptime(fecha_inicio, "%Y-%m-%d").date()
+        fin = datetime.strptime(fecha_fin, "%Y-%m-%d").date()
+        delta = fin - inicio
+        for i in range(delta.days + 1):
+            dia = inicio + timedelta(days=i)
+            print(dia)
+            fechas.append(dia)
+
+        # Obtener ventas por cada fecha
+        for fecha in fechas:
+            ventas = req.get(f"{API_URL}/ventas?fecha={fecha}")
+            ventas = ventas.json()
+            # Obtener el detalle de cada venta
+            for venta in ventas:
+                # Obtener folio de la venta
+                folio = venta["folio"]
+                # Obtener informacion del folio
+                venta_detalle = req.get(f"{API_URL}/ventas/{folio}")
+                venta_detalle = venta_detalle.json()
+                try:
+                    # Insertar en la coleccion correspondiente
+                    db[colecion].insert_one(venta_detalle)
+                    # TODO Traer el enpoint para aplicar mantenimiento a la venta
+                except Exception as e:
+                    print(f"Error al guardar la venta con folio {folio}: {e}")
+
         return jsonify(
-            {"inicio": fecha_inicio, "fin": fecha_fin, "sucursal": sucursal}
+            {
+                "inicio": fecha_inicio,
+                "fin": fecha_fin,
+                "sucursal": sucursal,
+                "total_ventas": len(ventas),
+            }
         ), 200
 
 
