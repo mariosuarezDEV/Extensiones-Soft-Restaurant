@@ -1,10 +1,11 @@
 from django.urls import path, include
+from .views import listar_ventas
 from rest_framework.routers import DefaultRouter
-from .viewsets import ChequesViewSet
 
 router = DefaultRouter()
-router.register(r"cheques", ChequesViewSet, basename="cheques")
+
 
 urlpatterns = [
-    path("api/", include(router.urls))
+    path("api/", include(router.urls)),
+    path("", listar_ventas, name="listar_ventas"),
 ]
