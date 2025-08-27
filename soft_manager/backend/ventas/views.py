@@ -31,7 +31,15 @@ def listar_ventas(request):
 
 
 @api_view(["GET"])
-def detalle_venta(request, folio):
+def detalle_venta(request, folio: int):
+    # Generar key para el cache
+    cache_key = f"detalle_venta_{folio}"
+
+    # Intentar obtener datos del cache
+    cached_data = cache.get(cache_key)
+    if cached_data is not None:
+        return Response(cached_data)
+
     # Query de los modelos
     venta = Cheques.objects.get(folio=folio)
     cheqdet = Cheqdet.objects.filter(foliodet=folio)
@@ -47,4 +55,8 @@ def detalle_venta(request, folio):
         "Consumo": cheqdet_serializer.data,
         "Pago": pagos_serializer.data,
     }
+
+    # Guardar en cache por 24 horas (86400 segundos)
+    cache.set(cache_key, data, timeout=86400)
+
     return Response(data)
