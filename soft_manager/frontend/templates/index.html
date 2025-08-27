@@ -1,6 +1,34 @@
 {% extends "base.html" %}
 
 {% block contenido %}
-
+<h1 class="my-4">Ventas del día {{ fecha }}</h1>
+<table class="table table-hover table-striped table-bordered text-center align-middle">
+    <thead class="table-dark">
+        <tr>
+            <th>ID</th>
+            <th>Folio</th>
+            <th>Fecha</th>
+            <th>Total</th>
+            <th>Facturado</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for venta in ventas %}
+        <tr>
+            <td>{{ venta.folio }}</td>
+            <td>{{ venta.numcheque }}</td>
+            <td>{{ venta.fecha }}</td>
+            <td>${{ venta.total }}</td>
+            <td>
+                {% if venta.facturado %}
+                    🟢
+                {% else %}
+                    🔴
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
 {% endblock contenido %}
 

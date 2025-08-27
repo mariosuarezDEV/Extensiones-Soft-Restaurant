@@ -1,16 +1,23 @@
 from flask import Flask, jsonify, render_template, request
 import pymongo
 import requests as req
+from datetime import datetime
 
 app = Flask(__name__)
 
 cliente = pymongo.MongoClient("mongodb://100.109.93.61:27017/")
 db = cliente.mongoffice
+API_URL = "http://127.0.0.1:8000"
 
 
 @app.route("/")
 def home():
-    return render_template("index.html")
+    # Obtener la fecha de ayer
+    yesterday = datetime.now().replace(day=datetime.now().day - 1)
+    # Formatear la fecha en el formato YYYY-MM-DD
+    formatted_date = yesterday.strftime("%Y-%m-%d")
+    ventas = req.get(f"{API_URL}/ventas?fecha={formatted_date}")
+    return render_template("index.html", ventas=ventas.json(), fecha=formatted_date)
 
 
 @app.route("/mantenimiento", methods=["GET", "POST"])
