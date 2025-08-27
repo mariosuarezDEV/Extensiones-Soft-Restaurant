@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block contenido %}
+<div class="row">
+    <div class="col-12">
+        <h1 class="fs-2 fw-bold mb-4">
+            Ajuste de ventas
+        </h1>
+        <form method="POST" class="needs-validation" action="/mantenimiento">
+            
+            <!-- Fecha inicio -->
+            <div class="mb-3">
+                <label for="fecha_inicio" class="form-label">Fecha Inicio</label>
+                <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio" required>
+            </div>
+
+            <!-- Fecha fin -->
+            <div class="mb-3">
+                <label for="fecha_fin" class="form-label">Fecha Fin</label>
+                <input type="date" class="form-control" id="fecha_fin" name="fecha_fin" required>
+            </div>
+
+            <!-- Sucursal -->
+            <div class="mb-3">
+                <label for="sucursal" class="form-label">Sucursal</label>
+                <select class="form-select" id="sucursal" name="sucursal" required>
+                    <option value="">Seleccione una sucursal</option>
+                    <option value="1">Centro</option>
+                    <option value="2">Araucarias</option>
+                    <option value="3">Desarrollo</option>
+                </select>
+            </div>
+
+            <!-- Enviar -->
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary">Ejecutar ahora</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock contenido %}

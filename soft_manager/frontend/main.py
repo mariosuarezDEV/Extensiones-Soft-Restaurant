@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, render_template, request
 import pymongo
 import requests as req
 
@@ -10,7 +10,20 @@ db = cliente.mongoffice
 
 @app.route("/")
 def home():
-    return jsonify({"message": "Hola mundo"}), 200
+    return render_template("index.html")
+
+
+@app.route("/mantenimiento", methods=["GET", "POST"])
+def mantenimiento():
+    if request.method == "GET":
+        return render_template("mantenimiento.html")
+    if request.method == "POST":
+        fecha_inicio = request.form.get("fecha_inicio")
+        fecha_fin = request.form.get("fecha_fin")
+        sucursal = request.form.get("sucursal")
+        return jsonify(
+            {"inicio": fecha_inicio, "fin": fecha_fin, "sucursal": sucursal}
+        ), 200
 
 
 @app.route("/stats", methods=["GET"])
