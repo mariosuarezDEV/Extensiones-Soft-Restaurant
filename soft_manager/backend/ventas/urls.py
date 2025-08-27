@@ -8,5 +8,5 @@ router = DefaultRouter()
 urlpatterns = [
     path("api/", include(router.urls)),
     path("", listar_ventas, name="listar_ventas"),
-    path("<int:folio>/", detalle_venta, name="detalle_venta"),
+    path("<int:folio>", detalle_venta, name="detalle_venta"),
 ]
