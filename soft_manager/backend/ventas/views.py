@@ -1,7 +1,7 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .serializers import ChequesSerializer
-from .models import Cheques
+from .serializers import ChequesSerializer, CheqdetSerializer, ChequespagosSerializer
+from .models import Cheques, Cheqdet, Chequespagos
 from django.core.cache import cache
 
 
@@ -28,3 +28,23 @@ def listar_ventas(request):
     cache.set(cache_key, serializer.data, timeout=86400)
 
     return Response(serializer.data)
+
+
+@api_view(["GET"])
+def detalle_venta(request, folio):
+    # Query de los modelos
+    venta = Cheques.objects.get(folio=folio)
+    cheqdet = Cheqdet.objects.filter(foliodet=folio)
+    chequespagos = Chequespagos.objects.filter(folio=folio)
+
+    # Serializar los datos
+    venta_serializer = ChequesSerializer(venta)
+    cheqdet_serializer = CheqdetSerializer(cheqdet, many=True)
+    pagos_serializer = ChequespagosSerializer(chequespagos, many=True)
+    # Combinar los datos
+    data = {
+        "Venta": venta_serializer.data,
+        "Consumo": cheqdet_serializer.data,
+        "Pago": pagos_serializer.data,
+    }
+    return Response(data)

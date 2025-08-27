@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Cheques, Cheqdet
+from .models import Cheques, Cheqdet, Chequespagos
 
 
 class ChequesSerializer(serializers.ModelSerializer):
@@ -88,4 +88,19 @@ class CheqdetSerializer(serializers.ModelSerializer):
             "productocompuestoprincipal",
             "preciocatalogo",
             "idcortesia",
+        ]
+
+
+class ChequespagosSerializer(serializers.ModelSerializer):
+    forma_pago = serializers.CharField(source="idformadepago", read_only=True)
+
+    class Meta:
+        model = Chequespagos
+        fields = [
+            "folio",
+            "importe",
+            "forma_pago",
+            "idformadepago",
+            "propina",
+            "tipodecambio",
         ]
