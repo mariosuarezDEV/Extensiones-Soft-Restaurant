@@ -82,7 +82,7 @@ def ajuste_folio(request, folio: int):
     producto_info = Productos.objects.get(idproducto=productos[prod_key])
     producto_detalle = Productosdetalle.objects.filter(idproducto=productos[prod_key])
 
-    fecha = cheque.first().fecha if cheque.exists() else None
+    fecha = cheque.fecha
     cantidad = 1
     # TODO - Actualizar información
     cheque.update(
