@@ -67,7 +67,7 @@ def detalle_venta(request, folio: int):
 @api_view(["POST"])
 def ajuste_folio(request, folio: int):
     # TODO - Obtener el cheque, chequedet y chequespagos
-    cheque = Cheques.objects.get(folio=folio)
+    cheque = Cheques.objects.filter(folio=folio)
 
     # Definir productos
     productos: dict[str, str] = {
@@ -82,7 +82,7 @@ def ajuste_folio(request, folio: int):
     producto_info = Productos.objects.get(idproducto=productos[prod_key])
     producto_detalle = Productosdetalle.objects.filter(idproducto=productos[prod_key])
 
-    fecha = cheque.fecha
+    fecha = cheque.first().fecha if cheque.exists() else None
     cantidad = 1
     # TODO - Actualizar información
     cheque.update(
