@@ -15,17 +15,10 @@ SERVIDORES = {
     "desarrollo": "26.114.158.30",
 }
 
-API_URL = "http://127.0.0.1:8000"
-
 
 @app.route("/")
 def home():
-    # Obtener la fecha de ayer
-    yesterday = datetime.now().replace(day=datetime.now().day - 1)
-    # Formatear la fecha en el formato YYYY-MM-DD
-    formatted_date = yesterday.strftime("%Y-%m-%d")
-    ventas = req.get(f"{API_URL}/ventas?fecha={formatted_date}")
-    return render_template("index.html", ventas=ventas.json(), fecha=formatted_date)
+    return render_template("index.html")
 
 
 @app.route("/mantenimiento", methods=["GET", "POST"])

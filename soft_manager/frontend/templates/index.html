@@ -1,34 +1,34 @@
 {% extends "base.html" %}
 
 {% block contenido %}
-<h1 class="my-4">Ventas del día {{ fecha }}</h1>
-<table class="table table-hover table-striped table-bordered text-center align-middle">
-    <thead class="table-dark">
-        <tr>
-            <th>ID</th>
-            <th>Folio</th>
-            <th>Fecha</th>
-            <th>Total</th>
-            <th>Facturado</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for venta in ventas %}
-        <tr>
-            <td>{{ venta.folio }}</td>
-            <td>{{ venta.numcheque }}</td>
-            <td>{{ venta.fecha }}</td>
-            <td>${{ venta.total }}</td>
-            <td>
-                {% if venta.facturado %}
-                    🟢
-                {% else %}
-                    🔴
-                {% endif %}
-            </td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+<div class="row g-3">
+    <div class="col-lg-4 col-12">
+        <div class="card text-bg-primary">
+            <div class="card-body">
+                <h5 class="card-title">Ajuste de ventas</h5>
+                <p class="card-text">Realiza ajustes a las ventas de un rango de fechas seleccionado de la sucursal aplicada.</p>
+                <a href="/mantenimiento" class="btn btn-light">Ir a Mantenimiento</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-12">
+        <div class="card text-bg-primary">
+            <div class="card-body">
+                <h5 class="card-title">Consultar respaldo de ventas</h5>
+                <p class="card-text">Consulta el respaldo de ventas de un rango de fechas seleccionado de la sucursal aplicada.</p>
+                <a href="/mantenimiento" class="btn btn-light">Analizar respaldo</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-12">
+        <div class="card text-bg-primary">
+            <div class="card-body">
+                <h5 class="card-title">Ventas Facturadas</h5>
+                <p class="card-text">Buscar y analizar ventas de una factura realizada en SoftRestaurant.</p>
+                <a href="/mantenimiento" class="btn btn-light">Ir al buscador</a>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock contenido %}
 
