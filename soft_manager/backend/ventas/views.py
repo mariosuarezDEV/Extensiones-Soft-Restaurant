@@ -5,6 +5,7 @@ from .models import Cheques, Cheqdet, Chequespagos, Productos, Productosdetalle
 from django.core.cache import cache
 import random
 from datetime import timedelta
+from rest_framework import status
 
 
 @api_view(["GET"])
@@ -77,13 +78,13 @@ def ajuste_folio(request, folio: int):
 
     # Escoger producto al azar
     prod_key = random.choice(list(productos.keys()))
+    cantidad = 1
 
     # TODO - Obtener información del producto en productos y productodetalle
     producto_info = Productos.objects.get(idproducto=productos[prod_key])
     producto_detalle = Productosdetalle.objects.get(idproducto=producto_info.idproducto)
 
     fecha = cheque.first().fecha if cheque.exists() else None
-    cantidad = 1
     # TODO - Actualizar información
     cheque.update(
         cierre=fecha + timedelta(minutes=3),
@@ -141,7 +142,7 @@ def ajuste_folio(request, folio: int):
     primer_movimiento = movimientos.first()
     movimientos.exclude(movimiento=primer_movimiento.movimiento).delete()
 
-    chequedet = Cheqdet.objects.filter(foliodet=folio).update(
+    Cheqdet.objects.filter(foliodet=folio).update(
         movimiento=1,
         cantidad=cantidad,
         idproducto=producto_info.idproducto,
@@ -160,20 +161,11 @@ def ajuste_folio(request, folio: int):
     )
 
     # TODO - Cambiar las formas de pago
-    chequespagos = Chequespagos.objects.filter(folio=folio).update(
+    Chequespagos.objects.filter(folio=folio).update(
         importe=producto_detalle.precio * cantidad, propina=0, tipodecambio=1
     )
 
-    # TODO - Serializar solo para prueba
-    cheque_serializer = ChequesSerializer(cheque)
-    chequedet_serializer = CheqdetSerializer(chequedet, many=True)
-    chequespagos_serializer = ChequespagosSerializer(chequespagos, many=True)
-
     # TODO - Mostrar la información
     return Response(
-        {
-            "cheque": cheque_serializer.data,
-            "chequedet": chequedet_serializer.data,
-            "chequespagos": chequespagos_serializer.data,
-        }
+        {"Mensaje": "Venta ajustada correctamente"}, status=status.HTTP_200_OK
     )
