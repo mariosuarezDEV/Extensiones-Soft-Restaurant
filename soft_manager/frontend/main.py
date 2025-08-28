@@ -12,7 +12,7 @@ db = cliente.mongoffice
 SERVIDORES = {
     "centro": "26.61.16.123",
     "araucarias": "26.217.212.35",
-    "desarrollo": "26.67.12.213",
+    "desarrollo": "26.114.158.30",
 }
 
 API_URL = "http://127.0.0.1:8000"
