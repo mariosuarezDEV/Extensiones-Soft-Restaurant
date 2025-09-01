@@ -2,7 +2,6 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .serializers import ChequesSerializer, CheqdetSerializer, ChequespagosSerializer
 from .models import Cheques, Cheqdet, Chequespagos, Productos, Productosdetalle
-from django.core.cache import cache
 import random
 from datetime import timedelta
 from rest_framework import status
@@ -15,34 +14,15 @@ def listar_ventas(request):
     if not fecha:
         return Response({"error": "Fecha no proporcionada"}, status=400)
 
-    # Generar key para el cache
-    cache_key = f"ventas_{fecha}"
-
-    # Intentar obtener datos del cache
-    cached_data = cache.get(cache_key)
-    if cached_data is not None:
-        return Response(cached_data)
-
-    # Si no está en cache, obtener de la base de datos
+    # Obtener de la base de datos
     cheques = Cheques.objects.filter(fecha__date=fecha)
     serializer = ChequesSerializer(cheques, many=True)
-
-    # Guardar en cache por 24 horas (86400 segundos)
-    cache.set(cache_key, serializer.data, timeout=86400)
 
     return Response(serializer.data)
 
 
 @api_view(["GET"])
 def detalle_venta(request, folio: int):
-    # Generar key para el cache
-    cache_key = f"detalle_venta_{folio}"
-
-    # Intentar obtener datos del cache
-    cached_data = cache.get(cache_key)
-    if cached_data is not None:
-        return Response(cached_data)
-
     # Query de los modelos
     venta = Cheques.objects.get(folio=folio)
     cheqdet = Cheqdet.objects.filter(foliodet=folio)
@@ -58,9 +38,6 @@ def detalle_venta(request, folio: int):
         "Consumo": cheqdet_serializer.data,
         "Pago": pagos_serializer.data,
     }
-
-    # Guardar en cache por 24 horas (86400 segundos)
-    cache.set(cache_key, data, timeout=86400)
 
     return Response(data)
 
