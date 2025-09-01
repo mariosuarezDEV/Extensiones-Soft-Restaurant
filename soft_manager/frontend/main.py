@@ -55,10 +55,11 @@ def mantenimiento():
             ventas = ventas.json()
             # Pasar a un dataframe
             ventas_df = pd.DataFrame(ventas)
-            # Convertir los tipos de datos y manejar valores nulos/inválidos
-            ventas_df["efectivo"] = pd.to_numeric(ventas_df["efectivo"], errors='coerce').fillna(0)
-            ventas_df["tarjeta"] = pd.to_numeric(ventas_df["tarjeta"], errors='coerce').fillna(0)
-            ventas_df["otros"] = pd.to_numeric(ventas_df["otros"], errors='coerce').fillna(0)
+            print(ventas_df.head())
+            # Convertir los tipos de datos
+            ventas_df["efectivo"] = ventas_df["efectivo"].astype(float)
+            ventas_df["tarjeta"] = ventas_df["tarjeta"].astype(float)
+            ventas_df["otros"] = ventas_df["otros"].astype(float)
             ventas_df["facturado"] = ventas_df["facturado"].astype(str)
             # Obtener solo lo que efectivo > 130 - tarjeta = 0, otros= 0 y mesa nombre diferente a ""
             ventas_filtradas = ventas_df[
