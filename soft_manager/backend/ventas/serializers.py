@@ -109,7 +109,7 @@ class ChequespagosSerializer(serializers.ModelSerializer):
 class FacturasSerializer(serializers.ModelSerializer):
     class Meta:
         model = Facturas
-        fields = "__all__"
+        fields = ["idfactura", "serie", "folio", "fecha", "nota"]
 
 
 class FoliosfacturadosSerializer(serializers.ModelSerializer):
