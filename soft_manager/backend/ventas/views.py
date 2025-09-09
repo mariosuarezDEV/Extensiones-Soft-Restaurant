@@ -46,6 +46,8 @@ def detalle_venta(request, folio: int):
     if folio_facturado:
         factura_encontrada = Facturas.objects.get(idfactura=folio_facturado.idfactura)
         print("Factura encontrada:", factura_encontrada)
+    else:
+        print("El folio no ha sido facturado.")
 
     # Serializar los datos
     venta_serializer = ChequesSerializer(venta)
