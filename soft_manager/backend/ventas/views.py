@@ -1,7 +1,21 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .serializers import ChequesSerializer, CheqdetSerializer, ChequespagosSerializer
-from .models import Cheques, Cheqdet, Chequespagos, Productos, Productosdetalle
+from .serializers import (
+    ChequesSerializer,
+    CheqdetSerializer,
+    ChequespagosSerializer,
+    FoliosfacturadosSerializer,
+    FacturasSerializer,
+)
+from .models import (
+    Cheques,
+    Cheqdet,
+    Chequespagos,
+    Productos,
+    Productosdetalle,
+    Foliosfacturados,
+    Facturas,
+)
 import random
 from datetime import timedelta
 from rest_framework import status
@@ -27,6 +41,11 @@ def detalle_venta(request, folio: int):
     venta = Cheques.objects.get(folio=folio)
     cheqdet = Cheqdet.objects.filter(foliodet=folio)
     chequespagos = Chequespagos.objects.filter(folio=folio)
+    # Buscar si el folio ya fue facturado en foliosfacturados
+    folio_facturado = Foliosfacturados.objects.filter(folio=folio).first()
+    if folio_facturado:
+        factura_encontrada = Facturas.objects.get(idfactura=folio_facturado.idfactura)
+        print("Factura encontrada:", factura_encontrada)
 
     # Serializar los datos
     venta_serializer = ChequesSerializer(venta)

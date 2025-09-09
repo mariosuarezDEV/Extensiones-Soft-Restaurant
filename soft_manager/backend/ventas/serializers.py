@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Cheques, Cheqdet, Chequespagos
+from .models import Cheques, Cheqdet, Chequespagos, Facturas, Foliosfacturados
 
 
 class ChequesSerializer(serializers.ModelSerializer):
@@ -104,3 +104,15 @@ class ChequespagosSerializer(serializers.ModelSerializer):
             "propina",
             "tipodecambio",
         ]
+
+
+class FacturasSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Facturas
+        fields = "__all__"
+
+
+class FoliosfacturadosSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Foliosfacturados
+        fields = "__all__"

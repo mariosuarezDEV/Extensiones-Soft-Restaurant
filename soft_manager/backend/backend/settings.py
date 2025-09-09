@@ -38,17 +38,17 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    #terceros
+    # terceros
     "rest_framework",
     "django_bootstrap5",
-    "debug_toolbar",
+    # "debug_toolbar",
     "django_filters",
     # Mis Apps
     "ventas.apps.VentasConfig",
 ]
 
 MIDDLEWARE = [
-    "debug_toolbar.middleware.DebugToolbarMiddleware",
+    # "debug_toolbar.middleware.DebugToolbarMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -65,7 +65,7 @@ TEMPLATES = [
         "BACKEND": "django.template.backends.django.DjangoTemplates",
         "DIRS": [
             BASE_DIR / "templates",
-            ],
+        ],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -89,7 +89,7 @@ DATABASES = {
         "NAME": "softrestaurant11",
         "USER": "sa",
         "PASSWORD": "National09",
-        "HOST": "26.217.212.35",
+        "HOST": "26.61.16.123",
         "PORT": "1433",
         "OPTIONS": {
             "driver": "ODBC Driver 18 for SQL Server",
@@ -144,7 +144,7 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 ASGI_APPLICATION = "backend.asgi.application"
 
 # Cache
-#CACHES = {
+# CACHES = {
 #    "default": {
 #        "BACKEND": "django_redis.cache.RedisCache",
 #        "LOCATION": "redis://26.207.163.198:6379/1",
@@ -152,7 +152,7 @@ ASGI_APPLICATION = "backend.asgi.application"
 #            "CLIENT_CLASS": "django_redis.client.DefaultClient",
 #        },
 #    }
-#}
+# }
 
 # Rest framework settings
 REST_FRAMEWORK = {
@@ -160,7 +160,7 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 10,
     # Filtros
-    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
+    "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
 }
 # Debug toolbar settings
 INTERNAL_IPS = [
