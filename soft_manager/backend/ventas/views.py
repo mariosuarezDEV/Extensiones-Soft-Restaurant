@@ -42,14 +42,17 @@ def detalle_venta(request, folio: int):
     cheqdet = Cheqdet.objects.filter(foliodet=folio)
     chequespagos = Chequespagos.objects.filter(folio=folio)
     # Buscar si el folio ya fue facturado en foliosfacturados
-    folio_facturado = Foliosfacturados.objects.filter(folio=folio).first()
+    folios_facturados = Foliosfacturados.objects.filter(folio=folio).first()
+    factura = (
+        Facturas.objects.get(idfactura=folios_facturados.idfactura)
+        if folios_facturados
+        else None
+    )
     # Serializar los datos
     venta_serializer = ChequesSerializer(venta)
     cheqdet_serializer = CheqdetSerializer(cheqdet, many=True)
     pagos_serializer = ChequespagosSerializer(chequespagos, many=True)
-    factura_serializer = (
-        FacturasSerializer(folio_facturado) if folio_facturado else None
-    )
+    factura_serializer = FacturasSerializer(factura) if factura else None
     # Combinar los datos
     data = {
         "Venta": venta_serializer.data,
