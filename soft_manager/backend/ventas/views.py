@@ -6,6 +6,7 @@ from .serializers import (
     ChequespagosSerializer,
     FoliosfacturadosSerializer,
     FacturasSerializer,
+    TempchequesSerializer,
 )
 from .models import (
     Cheques,
@@ -15,9 +16,10 @@ from .models import (
     Productosdetalle,
     Foliosfacturados,
     Facturas,
+    Tempcheques,
 )
 import random
-from datetime import timedelta
+from datetime import timedelta, timezone
 from rest_framework import status
 
 
@@ -168,3 +170,12 @@ def ajuste_folio(request, folio: int):
     return Response(
         {"Mensaje": "Venta ajustada correctamente"}, status=status.HTTP_200_OK
     )
+
+
+@api_view(["GET"])
+def listar_tempcheques(request):
+    # obtener fecha actual
+    fecha = timezone.now().date()
+    tempcheques = Tempcheques.objects.filter(fecha=fecha)
+    serializer = TempchequesSerializer(tempcheques, many=True)
+    return Response(serializer.data)

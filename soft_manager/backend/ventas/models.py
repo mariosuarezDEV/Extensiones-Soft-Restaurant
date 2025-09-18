@@ -1666,3 +1666,351 @@ class Foliosfacturados(models.Model):
     class Meta:
         managed = False
         db_table = "foliosfacturados"
+
+
+class Tempcheques(models.Model):
+    folio = models.BigAutoField(primary_key=True)
+    seriefolio = models.CharField(max_length=15, blank=True, null=True)
+    numcheque = models.BigIntegerField(blank=True, null=True)
+    fecha = models.DateTimeField(blank=True, null=True)
+    salidarepartidor = models.DateTimeField(blank=True, null=True)
+    arriborepartidor = models.DateTimeField(blank=True, null=True)
+    cierre = models.DateTimeField(blank=True, null=True)
+    mesa = models.CharField(max_length=100, blank=True, null=True)
+    nopersonas = models.IntegerField(blank=True, null=True)
+    idmesero = models.CharField(max_length=4, blank=True, null=True)
+    pagado = models.BooleanField(blank=True, null=True)
+    cancelado = models.BooleanField(blank=True, null=True)
+    impreso = models.BooleanField(blank=True, null=True)
+    impresiones = models.IntegerField(blank=True, null=True)
+    cambio = models.DecimalField(max_digits=19, decimal_places=4, blank=True, null=True)
+    descuento = models.DecimalField(
+        max_digits=19, decimal_places=4, blank=True, null=True
+    )
+    reabiertas = models.IntegerField(blank=True, null=True)
+    razoncancelado = models.CharField(max_length=255, blank=True, null=True)
+    orden = models.DecimalField(max_digits=6, decimal_places=0, blank=True, null=True)
+    facturado = models.BooleanField(blank=True, null=True)
+    idcliente = models.CharField(max_length=15, blank=True, null=True)
+    idarearestaurant = models.CharField(max_length=5, blank=True, null=True)
+    idempresa = models.CharField(max_length=15, blank=True, null=True)
+    tipodeservicio = models.IntegerField(blank=True, null=True)
+    idturno = models.BigIntegerField(blank=True, null=True)
+    usuariocancelo = models.CharField(max_length=15, blank=True, null=True)
+    comentariodescuento = models.CharField(max_length=60, blank=True, null=True)
+    estacion = models.CharField(max_length=40, blank=True, null=True)
+    cambiorepartidor = models.DecimalField(
+        max_digits=19, decimal_places=4, blank=True, null=True
+    )
+    usuariodescuento = models.CharField(max_length=15, blank=True, null=True)
+    fechacancelado = models.DateTimeField(blank=True, null=True)
+    idtipodescuento = models.CharField(max_length=5, blank=True, null=True)
+    numerotarjeta = models.CharField(max_length=30, blank=True, null=True)
+    folionotadeconsumo = models.BigIntegerField(blank=True, null=True)
+    notadeconsumo = models.BooleanField(blank=True, null=True)
+    propinapagada = models.BooleanField(blank=True, null=True)
+    propinafoliomovtocaja = models.BigIntegerField(blank=True, null=True)
+    puntosmonederogenerados = models.DecimalField(
+        max_digits=19, decimal_places=4, blank=True, null=True
+    )
+    propinaincluida = models.DecimalField(
+        max_digits=19, decimal_places=4, blank=True, null=True
+    )
+    tarjetadescuento = models.CharField(max_length=30, blank=True, null=True)
+    porcentajefac = models.DecimalField(
+        max_digits=11, decimal_places=6, blank=True, null=True
+    )
+    propinamanual = models.BooleanField(blank=True, null=True)
+    usuariopago = models.CharField(max_length=15, blank=True, null=True)
+    idclientefacturacion = models.CharField(max_length=15, blank=True, null=True)
+    cuentaenuso = models.BooleanField(blank=True, null=True)
+    observaciones = models.CharField(max_length=250, blank=True, null=True)
+    idclientedomicilio = models.CharField(max_length=15, blank=True, null=True)
+    iddireccion = models.CharField(max_length=15, blank=True, null=True)
+    telefonousadodomicilio = models.CharField(max_length=50, blank=True, null=True)
+    totalarticulos = models.DecimalField(
+        max_digits=11, decimal_places=2, blank=True, null=True
+    )
+    subtotal = models.DecimalField(
+        max_digits=19, decimal_places=4, blank=True, null=True
+    )
+    subtotalsinimpuestos = models.DecimalField(
+        max_digits=19, decimal_places=4, blank=True, null=True
+    )
+    total = models.DecimalField(max_digits=19, decimal_places=4, blank=True, null=True)
+    totalconpropina = models.DecimalField(
+        max_digits=19, decimal_places=4, blank=True, null=True
+    )
+    totalimpuesto1 = models.DecimalField(
+        max_digits=19, decimal_places=4, blank=True, null=True
+    )
+    cargo = models.DecimalField(max_digits=19, decimal_places=4, blank=True, null=True)
+    totalconcargo = models.DecimalField(
+        max_digits=19, decimal_places=4, blank=True, null=True
+    )
+    totalconpropinacargo = models.DecimalField(
+        max_digits=19, decimal_places=4, blank=True, null=True
+    )
+    descuentoimporte = models.DecimalField(
+        max_digits=19, decimal_places=4, blank=True, null=True
+    )
+    efectivo = models.DecimalField(
+        max_digits=19, decimal_places=4, blank=True, null=True
+    )
+    tarjeta = models.DecimalField(
+        max_digits=19, decimal_places=4, blank=True, null=True
+    )
+    vales = models.DecimalField(max_digits=19, decimal_places=4, blank=True, null=True)
+    otros = models.DecimalField(max_digits=19, decimal_places=4, blank=True, null=True)
+    propina = models.DecimalField(
+        max_digits=19, decimal_places=4, blank=True, null=True
+    )
+    propinatarjeta = models.DecimalField(
+        max_digits=19, decimal_places=4, blank=True, null=True
+    )
+    campoadicional1 = models.CharField(max_length=250, blank=True, null=True)
+    idreservacion = models.CharField(max_length=25, blank=True, null=True)
+    idcomisionista = models.CharField(max_length=15, blank=True, null=True)
+    importecomision = models.DecimalField(
+        max_digits=19, decimal_places=4, blank=True, null=True
+    )
+    comisionpagada = models.BooleanField(blank=True, null=True)
+    fechapagocomision = models.DateTimeField(blank=True, null=True)
+    foliopagocomision = models.DecimalField(
+        max_digits=8, decimal_places=0, blank=True, null=True
+    )
+    tipoventarapida = models.DecimalField(
+        max_digits=1, decimal_places=0, blank=True, null=True
+    )
+    callcenter = models.BooleanField(blank=True, null=True)
+    idordencompra = models.BigIntegerField(blank=True, null=True)
+    totalsindescuento = models.DecimalField(
+        max_digits=19, decimal_places=4, blank=True, null=True
+    )
+    totalalimentos = models.DecimalField(
+        max_digits=19, decimal_places=4, blank=True, null=True
+    )
+    totalbebidas = models.DecimalField(
+        max_digits=19, decimal_places=4, blank=True, null=True
+    )
+    totalotros = models.DecimalField(
+        max_digits=19, decimal_places=4, blank=True, null=True
+    )
+    totaldescuentos = models.DecimalField(
+        max_digits=19, decimal_places=4, blank=True, null=True
+    )
+    totaldescuentoalimentos = models.DecimalField(
+        max_digits=19, decimal_places=4, blank=True, null=True
+    )
+    totaldescuentobebidas = models.DecimalField(
+        max_digits=19, decimal_places=4, blank=True, null=True
+    )
+    totaldescuentootros = models.DecimalField(
+        max_digits=19, decimal_places=4, blank=True, null=True
+    )
+    totalcortesias = models.DecimalField(
+        max_digits=19, decimal_places=4, blank=True, null=True
+    )
+    totalcortesiaalimentos = models.DecimalField(
+        max_digits=19, decimal_places=4, blank=True, null=True
+    )
+    totalcortesiabebidas = models.DecimalField(
+        max_digits=19, decimal_places=4, blank=True, null=True
+    )
+    totalcortesiaotros = models.DecimalField(
+        max_digits=19, decimal_places=4, blank=True, null=True
+    )
+    totaldescuentoycortesia = models.DecimalField(
+        max_digits=19, decimal_places=4, blank=True, null=True
+    )
+    totalalimentossindescuentos = models.DecimalField(
+        max_digits=19, decimal_places=4, blank=True, null=True
+    )
+    totalbebidassindescuentos = models.DecimalField(
+        max_digits=19, decimal_places=4, blank=True, null=True
+    )
+    totalotrossindescuentos = models.DecimalField(
+        max_digits=19, decimal_places=4, blank=True, null=True
+    )
+    descuentocriterio = models.DecimalField(
+        max_digits=1, decimal_places=0, blank=True, null=True
+    )
+    descuentomonedero = models.DecimalField(
+        max_digits=19, decimal_places=4, blank=True, null=True
+    )
+    idmenucomedor = models.CharField(max_length=15, blank=True, null=True)
+    subtotalcondescuento = models.DecimalField(
+        max_digits=19, decimal_places=4, blank=True, null=True
+    )
+    comisionpax = models.DecimalField(
+        max_digits=19, decimal_places=4, blank=True, null=True
+    )
+    procesadointerfaz = models.BooleanField(blank=True, null=True)
+    domicilioprogramado = models.BooleanField(blank=True, null=True)
+    fechadomicilioprogramado = models.DateTimeField(blank=True, null=True)
+    enviado = models.BooleanField(blank=True, null=True)
+    ncf = models.CharField(max_length=19, blank=True, null=True)
+    numerocuenta = models.CharField(max_length=100, blank=True, null=True)
+    codigo_unico_af = models.CharField(max_length=30, blank=True, null=True)
+    estatushub = models.IntegerField(blank=True, null=True)
+    idfoliohub = models.DecimalField(
+        max_digits=8, decimal_places=0, blank=True, null=True
+    )
+    enviadorw = models.BooleanField(
+        db_column="EnviadoRW", blank=True, null=True
+    )  # Field name made lowercase.
+    usuarioapertura = models.CharField(max_length=15)
+    titulartarjetamonedero = models.CharField(max_length=100, blank=True, null=True)
+    saldoanteriormonedero = models.DecimalField(
+        max_digits=19, decimal_places=4, blank=True, null=True
+    )
+    autorizacionfolio = models.CharField(max_length=50, blank=True, null=True)
+    fechalimiteemision = models.DateTimeField(blank=True, null=True)
+    totalimpuestod1 = models.DecimalField(max_digits=19, decimal_places=4)
+    totalimpuestod2 = models.DecimalField(max_digits=19, decimal_places=4)
+    totalimpuestod3 = models.DecimalField(max_digits=19, decimal_places=4)
+    idmotivocancela = models.CharField(max_length=200, blank=True, null=True)
+    sistema_envio = models.IntegerField()
+    idformadepagodescuento = models.CharField(
+        db_column="idformadepagoDescuento", max_length=5
+    )  # Field name made lowercase.
+    titulartarjetamonederodescuento = models.CharField(max_length=100)
+    c_iddispositivo = models.IntegerField()
+    salerestaurantid = models.TextField()
+    timemarktoconfirmed = models.DateTimeField(blank=True, null=True)
+    timemarktodelivery = models.DateTimeField(blank=True, null=True)
+    timemarktodeliveryarrive = models.DateTimeField(blank=True, null=True)
+    esalestatus = models.IntegerField()
+    statussr = models.IntegerField(db_column="statusSR")  # Field name made lowercase.
+    paymentreference = models.CharField(max_length=50)
+    deliverycharge = models.DecimalField(
+        max_digits=6, decimal_places=5, blank=True, null=True
+    )
+    comandaimpresa = models.BooleanField(blank=True, null=True)
+    foodorder = models.IntegerField()
+    cashpaymentwith = models.DecimalField(max_digits=19, decimal_places=4)
+    paymentmethod_id = models.IntegerField()
+    surveycode = models.CharField(max_length=18)
+    intentoenvioaf = models.IntegerField(
+        db_column="intentoEnvioAF"
+    )  # Field name made lowercase.
+    pedidovistosrx = models.BooleanField()
+    impresoenbitacorasrm = models.BooleanField()
+    cuentapagadaprocesada = models.BooleanField(blank=True, null=True)
+    tkc_token = models.CharField(
+        db_column="TKC_Token", max_length=50
+    )  # Field name made lowercase.
+    tkc_transaction = models.CharField(
+        db_column="TKC_Transaction", max_length=100
+    )  # Field name made lowercase.
+    tkc_authorization = models.CharField(
+        db_column="TKC_Authorization", max_length=100
+    )  # Field name made lowercase.
+    tkc_cupon = models.CharField(
+        db_column="TKC_Cupon", max_length=100
+    )  # Field name made lowercase.
+    tkc_expirationdate = models.CharField(
+        db_column="TKC_ExpirationDate", max_length=100
+    )  # Field name made lowercase.
+    tkc_recompensa = models.DecimalField(
+        db_column="TKC_Recompensa", max_digits=19, decimal_places=4
+    )  # Field name made lowercase.
+    campoadicional2 = models.CharField(max_length=250)
+    campoadicional3 = models.CharField(max_length=250)
+    estrateca_cardnumber = models.CharField(
+        db_column="estrateca_CardNumber", max_length=100
+    )  # Field name made lowercase.
+    estrateca_vouchertext = models.TextField(
+        db_column="estrateca_VoucherText"
+    )  # Field name made lowercase.
+    campoadicional4 = models.CharField(max_length=250)
+    campoadicional5 = models.CharField(max_length=250)
+    sacoa_cardnumber = models.CharField(
+        db_column="sacoa_CardNumber", max_length=100
+    )  # Field name made lowercase.
+    sacoa_credits = models.DecimalField(max_digits=19, decimal_places=4)
+    estrateca_typedisccount = models.CharField(
+        db_column="estrateca_TypeDisccount", max_length=50
+    )  # Field name made lowercase.
+    estrateca_discountcode = models.CharField(
+        db_column="estrateca_DiscountCode", max_length=50
+    )  # Field name made lowercase.
+    estrateca_discountid = models.CharField(
+        db_column="estrateca_DiscountID", max_length=50
+    )  # Field name made lowercase.
+    estrateca_discountamount = models.DecimalField(
+        db_column="estrateca_DiscountAmount", max_digits=19, decimal_places=4
+    )  # Field name made lowercase.
+    desc_imp_original = models.DecimalField(
+        max_digits=19, decimal_places=4, blank=True, null=True
+    )
+    donativo = models.DecimalField(max_digits=19, decimal_places=4)
+    totalcondonativo = models.DecimalField(max_digits=19, decimal_places=4)
+    totalconpropinacargodonativo = models.DecimalField(max_digits=19, decimal_places=4)
+    orderreference = models.CharField(max_length=500)
+    appname = models.CharField(max_length=250)
+    paymentproviderid = models.CharField(max_length=50)
+    paymentprovider = models.CharField(max_length=250)
+    changestatussrx = models.BooleanField(
+        db_column="ChangeStatusSRX", blank=True, null=True
+    )  # Field name made lowercase.
+    datedownload = models.DateTimeField(
+        db_column="DateDownload", blank=True, null=True
+    )  # Field name made lowercase.
+    comandaimpresacancelada = models.BooleanField(blank=True, null=True)
+    empaquetado = models.DateTimeField(blank=True, null=True)
+    status_domicilio = models.IntegerField()
+    asignacion = models.DateTimeField(blank=True, null=True)
+    enviopagado = models.BooleanField()
+    diet_restrictions = models.CharField(max_length=250)
+    sl_cupon_descuento = models.CharField(max_length=250)
+    sl_tipo_cupon = models.CharField(max_length=50)
+    sl_importe_descuento = models.DecimalField(
+        max_digits=19, decimal_places=4, blank=True, null=True
+    )
+    tuki_cardnumber = models.CharField(
+        db_column="TUKI_CardNumber", max_length=250
+    )  # Field name made lowercase.
+    tuki_accumulatedpoints = models.DecimalField(
+        db_column="TUKI_AccumulatedPoints",
+        max_digits=19,
+        decimal_places=4,
+        blank=True,
+        null=True,
+    )  # Field name made lowercase.
+    tuki_currentpoints = models.DecimalField(
+        db_column="TUKI_CurrentPoints",
+        max_digits=19,
+        decimal_places=4,
+        blank=True,
+        null=True,
+    )  # Field name made lowercase.
+    sl_num_cupones = models.DecimalField(
+        max_digits=16, decimal_places=6, blank=True, null=True
+    )
+    workspaceid = models.CharField(
+        db_column="WorkspaceId", max_length=36
+    )  # Field name made lowercase.
+    sentsync = models.BooleanField(db_column="SentSync")  # Field name made lowercase.
+    procesar_descuento_emenu = models.BooleanField()
+    procesar_descuento_sr = models.BooleanField()
+    imprimenotabluetooth = models.BooleanField()
+    datosimpresionnotaconsumo = models.TextField()
+    subtotal_ec = models.BinaryField(blank=True, null=True)
+    total_ec = models.BinaryField(blank=True, null=True)
+    totalconpropinacargo_ec = models.BinaryField(blank=True, null=True)
+    mv_room = models.CharField(max_length=100)
+    mv_lastname = models.CharField(max_length=100)
+    totalsindescuentoimp = models.DecimalField(
+        max_digits=19, decimal_places=4, blank=True, null=True
+    )
+    esaledeliverytype = models.IntegerField(
+        db_column="ESaleDeliveryType"
+    )  # Field name made lowercase.
+    desc_porc_original = models.DecimalField(
+        max_digits=8, decimal_places=4, blank=True, null=True
+    )
+
+    class Meta:
+        managed = False
+        db_table = "tempcheques"

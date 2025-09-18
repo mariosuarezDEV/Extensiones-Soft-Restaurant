@@ -89,7 +89,7 @@ DATABASES = {
         "NAME": "softrestaurant11",
         "USER": "sa",
         "PASSWORD": "National09",
-        "HOST": "26.61.16.123",
+        "HOST": "localhost",
         "PORT": "1433",
         "OPTIONS": {
             "driver": "ODBC Driver 18 for SQL Server",
