@@ -177,6 +177,7 @@ def ajuste_folio(request, folio: int):
 def listar_tempcheques(request):
     # obtener fecha actual del servidor
     fecha = timezone.now().date()
+    print(fecha)
     tempcheques = Tempcheques.objects.filter(fecha=fecha)
     serializer = TempchequesSerializer(tempcheques, many=True)
     return Response(serializer.data)
