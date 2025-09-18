@@ -19,7 +19,8 @@ from .models import (
     Tempcheques,
 )
 import random
-from datetime import timedelta, timezone
+from datetime import timedelta, datetime, date
+from django.utils import timezone
 from rest_framework import status
 
 
@@ -174,7 +175,7 @@ def ajuste_folio(request, folio: int):
 
 @api_view(["GET"])
 def listar_tempcheques(request):
-    # obtener fecha actual
+    # obtener fecha actual del servidor
     fecha = timezone.now().date()
     tempcheques = Tempcheques.objects.filter(fecha=fecha)
     serializer = TempchequesSerializer(tempcheques, many=True)
