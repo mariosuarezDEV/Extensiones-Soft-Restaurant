@@ -41,11 +41,11 @@ def listar_ventas(request):
 @api_view(["GET"])
 def detalle_venta(request, folio: int):
     # Query de los modelos
-    venta = Cheques.objects.get(folio=folio)
-    cheqdet = Cheqdet.objects.filter(foliodet=folio)
-    chequespagos = Chequespagos.objects.filter(folio=folio)
+    venta = Cheques.objects.get(numcheque=folio)
+    cheqdet = Cheqdet.objects.filter(foliodet=venta.folio)
+    chequespagos = Chequespagos.objects.filter(folio=venta.folio)
     # Buscar si el folio ya fue facturado en foliosfacturados
-    folios_facturados = Foliosfacturados.objects.filter(folio=folio).first()
+    folios_facturados = Foliosfacturados.objects.filter(folio=venta.folio).first()
     factura = (
         Facturas.objects.get(idfactura=folios_facturados.idfactura)
         if folios_facturados
@@ -87,7 +87,6 @@ def ajuste_folio(request, folio: int):
     producto_detalle = Productosdetalle.objects.get(idproducto=producto_info.idproducto)
 
     fecha = cheque.first().fecha if cheque.exists() else None
-    # TODO - Actualizar información
     cheque.update(
         cierre=fecha + timedelta(minutes=3),
         mesa="P/LL",
@@ -139,7 +138,6 @@ def ajuste_folio(request, folio: int):
         totalsindescuentoimp=producto_detalle.precio * cantidad,
     )
 
-    # TODO - Cambiar la información en los detalles de la venta
     movimientos = Cheqdet.objects.filter(foliodet=folio)
     primer_movimiento = movimientos.first()
     movimientos.exclude(movimiento=primer_movimiento.movimiento).delete()
@@ -162,12 +160,10 @@ def ajuste_folio(request, folio: int):
         idcortesia="",
     )
 
-    # TODO - Cambiar las formas de pago
     Chequespagos.objects.filter(folio=folio).update(
         importe=producto_detalle.precio * cantidad, propina=0, tipodecambio=1
     )
 
-    # TODO - Mostrar la información
     return Response(
         {"Mensaje": "Venta ajustada correctamente"}, status=status.HTTP_200_OK
     )
