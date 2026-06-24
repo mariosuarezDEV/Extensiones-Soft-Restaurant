@@ -22,6 +22,7 @@ import random
 from datetime import timedelta, datetime, date
 from django.utils import timezone
 from rest_framework import status
+from .scripts import get_sustituno
 
 
 @api_view(["GET"])
@@ -29,7 +30,7 @@ def listar_ventas(request):
     # Obtener fecha del query param
     fecha = request.query_params.get("fecha", None)
     if not fecha:
-        return Response({"error": "Fecha no proporcionada"}, status=400)
+        return Response({"error": "Fecha no proporcionada, prueba con: ?fecha=2026-12-31"}, status=400)
 
     # Obtener de la base de datos
     cheques = Cheques.objects.filter(fecha__date=fecha)
@@ -39,9 +40,37 @@ def listar_ventas(request):
 
 
 @api_view(["GET"])
-def detalle_venta(request, folio: int):
+def auditoria(request, folio: int):
     # Query de los modelos
     venta = Cheques.objects.get(numcheque=folio)
+    cheqdet = Cheqdet.objects.filter(foliodet=venta.folio)
+    chequespagos = Chequespagos.objects.filter(folio=venta.folio)
+    # Buscar si el folio ya fue facturado en foliosfacturados
+    folios_facturados = Foliosfacturados.objects.filter(folio=venta.folio).first()
+    factura = (
+        Facturas.objects.get(idfactura=folios_facturados.idfactura)
+        if folios_facturados
+        else None
+    )
+    # Serializar los datos
+    venta_serializer = ChequesSerializer(venta)
+    cheqdet_serializer = CheqdetSerializer(cheqdet, many=True)
+    pagos_serializer = ChequespagosSerializer(chequespagos, many=True)
+    factura_serializer = FacturasSerializer(factura) if factura else None
+    # Combinar los datos
+    data = {
+        "Venta": venta_serializer.data,
+        "Consumo": cheqdet_serializer.data,
+        "Pago": pagos_serializer.data,
+        "Factura": factura_serializer.data if factura_serializer else None,
+    }
+
+    return Response(data)
+
+@api_view(["GET"])
+def detalle_venta(request, folio: int):
+    # Query de los modelos
+    venta = Cheques.objects.get(folio=folio)
     cheqdet = Cheqdet.objects.filter(foliodet=venta.folio)
     chequespagos = Chequespagos.objects.filter(folio=venta.folio)
     # Buscar si el folio ya fue facturado en foliosfacturados
@@ -72,19 +101,7 @@ def ajuste_folio(request, folio: int):
     # TODO - Obtener el cheque, chequedet y chequespagos
     cheque = Cheques.objects.filter(folio=folio)
 
-    # Definir productos
-    productos: dict[str, str] = {
-        "cafe": "V-034003",
-        "pan": "042035",
-    }
-
-    # Escoger producto al azar
-    prod_key = random.choice(list(productos.keys()))
-    cantidad = 1
-
-    # TODO - Obtener información del producto en productos y productodetalle
-    producto_info = Productos.objects.get(idproducto=productos[prod_key])
-    producto_detalle = Productosdetalle.objects.get(idproducto=producto_info.idproducto)
+    producto_info, cantidad = get_sustituno()
 
     fecha = cheque.first().fecha if cheque.exists() else None
     cheque.update(
@@ -101,25 +118,25 @@ def ajuste_folio(request, folio: int):
         propinaincluida=0,
         propinamanual=0,
         totalarticulos=cantidad,
-        subtotal=producto_detalle.preciosinimpuestos * cantidad,
-        subtotalsinimpuestos=producto_detalle.preciosinimpuestos * cantidad,
-        total=producto_detalle.precio * cantidad,
-        totalconpropina=producto_detalle.precio * cantidad,
-        totalimpuesto1=producto_detalle.precio * cantidad,
+        subtotal=producto_info['precio'] * cantidad,
+        subtotalsinimpuestos=producto_info['precio'] * cantidad,
+        total=producto_info['precio'] * cantidad,
+        totalconpropina=producto_info['precio'] * cantidad,
+        totalimpuesto1=producto_info['precio'] * cantidad,
         cargo=0,
-        totalconcargo=producto_detalle.precio * cantidad,
-        totalconpropinacargo=producto_detalle.precio * cantidad,
+        totalconcargo=producto_info['precio'] * cantidad,
+        totalconpropinacargo=producto_info['precio'] * cantidad,
         descuentoimporte=0,
-        efectivo=producto_detalle.precio * cantidad,
+        efectivo=producto_info['precio'] * cantidad,
         tarjeta=0,
         vales=0,
         otros=0,
         propina=0,
         propinatarjeta=0,
-        totalsindescuento=producto_detalle.precio * cantidad,
+        totalsindescuento=producto_info['precio'] * cantidad,
         totalalimentos=0,
         totalbebidas=0,
-        totalotros=producto_detalle.precio * cantidad,
+        totalotros=producto_info['precio'] * cantidad,
         totaldescuentos=0,
         totaldescuentoalimentos=0,
         totaldescuentobebidas=0,
@@ -131,11 +148,11 @@ def ajuste_folio(request, folio: int):
         totaldescuentoycortesia=0,
         totalalimentossindescuentos=0,
         totalbebidassindescuentos=0,
-        totalotrossindescuentos=producto_detalle.precio * cantidad,
+        totalotrossindescuentos=producto_info['precio'] * cantidad,
         descuentocriterio=0,
-        subtotalcondescuento=producto_detalle.precio * cantidad,
-        totalimpuestod1=producto_detalle.precio * cantidad,
-        totalsindescuentoimp=producto_detalle.precio * cantidad,
+        subtotalcondescuento=producto_info['precio'] * cantidad,
+        totalimpuestod1=producto_info['precio'] * cantidad,
+        totalsindescuentoimp=producto_info['precio'] * cantidad,
     )
 
     movimientos = Cheqdet.objects.filter(foliodet=folio)
@@ -145,23 +162,23 @@ def ajuste_folio(request, folio: int):
     Cheqdet.objects.filter(foliodet=folio).update(
         movimiento=1,
         cantidad=cantidad,
-        idproducto=producto_info.idproducto,
+        idproducto=producto_info['id'],
         descuento=0,
-        precio=producto_detalle.precio,
-        impuesto1=producto_detalle.impuesto1,
-        preciosinimpuestos=producto_detalle.preciosinimpuestos,
+        precio=producto_info['precio'],
+        impuesto1=0,
+        preciosinimpuestos=producto_info['precio'],
         comentario="",
         usuariodescuento="",
         comentariodescuento="",
         idtipodescuento=0,
         idproductocompuesto="",
         productocompuestoprincipal=False,
-        preciocatalogo=producto_detalle.precio,
+        preciocatalogo=producto_info['precio'],
         idcortesia="",
     )
 
     Chequespagos.objects.filter(folio=folio).update(
-        importe=producto_detalle.precio * cantidad, propina=0, tipodecambio=1
+        importe=producto_info['precio'] * cantidad, propina=0, tipodecambio=1
     )
 
     return Response(
