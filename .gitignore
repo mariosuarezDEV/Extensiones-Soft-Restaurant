@@ -1,6 +1,8 @@
 # Variables de entorno
 .env
 
+#Archivos confidenciales
+*.cvs
 # Caché de Python
 __pycache__/
 *.py[cod]
