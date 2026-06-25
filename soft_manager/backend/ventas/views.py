@@ -102,6 +102,10 @@ def ajuste_folio(request, folio: int):
     cheque = Cheques.objects.filter(folio=folio)
 
     producto_info, cantidad = get_sustituno()
+    """
+    producto_info -> id, precio, preciosinimpuestos, categoria (otros, bebidas)
+    cantidad -> int
+    """
 
     fecha = cheque.first().fecha if cheque.exists() else None
     cheque.update(
@@ -118,11 +122,11 @@ def ajuste_folio(request, folio: int):
         propinaincluida=0,
         propinamanual=0,
         totalarticulos=cantidad,
-        subtotal=producto_info['precio'] * cantidad,
-        subtotalsinimpuestos=producto_info['precio'] * cantidad,
+        subtotal=producto_info['preciosinimpuestos'] * cantidad,
+        subtotalsinimpuestos= None, # En la BD es nullable, se puede dejar como None
         total=producto_info['precio'] * cantidad,
         totalconpropina=producto_info['precio'] * cantidad,
-        totalimpuesto1=producto_info['precio'] * cantidad,
+        totalimpuesto1=(producto_info['precio'] * cantidad) - (producto_info['preciosinimpuestos'] * cantidad),
         cargo=0,
         totalconcargo=producto_info['precio'] * cantidad,
         totalconpropinacargo=producto_info['precio'] * cantidad,
@@ -133,10 +137,10 @@ def ajuste_folio(request, folio: int):
         otros=0,
         propina=0,
         propinatarjeta=0,
-        totalsindescuento=producto_info['precio'] * cantidad,
+        totalsindescuento=producto_info['preciosinimpuestos'] * cantidad,
         totalalimentos=0,
-        totalbebidas=0,
-        totalotros=producto_info['precio'] * cantidad,
+        totalbebidas= producto_info['preciosinimpuestos'] * cantidad if producto_info['categoria'] == 'bebidas' else 0,
+        totalotros=producto_info['preciosinimpuestos'] * cantidad if producto_info['categoria'] == 'otros' else 0,
         totaldescuentos=0,
         totaldescuentoalimentos=0,
         totaldescuentobebidas=0,
@@ -147,12 +151,12 @@ def ajuste_folio(request, folio: int):
         totalcortesiaotros=0,
         totaldescuentoycortesia=0,
         totalalimentossindescuentos=0,
-        totalbebidassindescuentos=0,
-        totalotrossindescuentos=producto_info['precio'] * cantidad,
+        totalbebidassindescuentos= producto_info['preciosinimpuestos'] * cantidad if producto_info['categoria'] == 'bebidas' else 0,
+        totalotrossindescuentos=producto_info['preciosinimpuestos'] * cantidad if producto_info['categoria'] == 'otros' else 0,
         descuentocriterio=0,
-        subtotalcondescuento=producto_info['precio'] * cantidad,
-        totalimpuestod1=producto_info['precio'] * cantidad,
-        totalsindescuentoimp=producto_info['precio'] * cantidad,
+        subtotalcondescuento=producto_info['preciosinimpuestos'] * cantidad,
+        totalimpuestod1=producto_info['preciosinimpuestos'] * cantidad,
+        totalsindescuentoimp=0.00,
     )
 
     movimientos = Cheqdet.objects.filter(foliodet=folio)
@@ -165,8 +169,8 @@ def ajuste_folio(request, folio: int):
         idproducto=producto_info['id'],
         descuento=0,
         precio=producto_info['precio'],
-        impuesto1=0,
-        preciosinimpuestos=producto_info['precio'],
+        impuesto1= producto_info['impuesto'],
+        preciosinimpuestos=producto_info['preciosinimpuestos'],
         comentario="",
         usuariodescuento="",
         comentariodescuento="",
@@ -182,7 +186,7 @@ def ajuste_folio(request, folio: int):
     )
 
     return Response(
-        {"Mensaje": "Venta ajustada correctamente"}, status=status.HTTP_200_OK
+        {"Mensaje": f"Folio: {folio} ajustado por: {producto_info['id']} - ${producto_info['precio'] * cantidad} - #{cantidad}"}, status=status.HTTP_200_OK
     )
 
 
