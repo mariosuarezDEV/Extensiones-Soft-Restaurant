@@ -10,8 +10,8 @@ cliente = pymongo.MongoClient("mongodb://26.142.131.213:27017/")
 db = cliente.mongoffice
 
 SERVIDORES = {
-    "centro": "26.61.16.123",
-    "araucarias": "26.217.212.35",
+    "centro": "localhost",
+    "araucarias": "localhost",
     "desarrollo": "localhost",
 }
 

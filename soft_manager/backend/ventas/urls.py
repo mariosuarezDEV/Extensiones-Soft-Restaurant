@@ -1,5 +1,5 @@
 from django.urls import path, include
-from .views import listar_ventas, detalle_venta, ajuste_folio, listar_tempcheques, auditoria
+from .views import listar_ventas, detalle_venta, ajuste_folio, listar_tempcheques, auditoria, buscar_producto, listar_grupos
 from rest_framework.routers import DefaultRouter
 
 router = DefaultRouter()
@@ -12,4 +12,6 @@ urlpatterns = [
     path("auditoria/<int:folio>", auditoria, name="auditoria"),
     path("ajuste/<int:folio>", ajuste_folio, name="ajuste_folio"),
     path("actuales/", listar_tempcheques, name="listar_tempcheques"),
+    path("producto/<str:idproducto>", buscar_producto, name="buscar_producto"),
+    path("grupos/", listar_grupos, name="listar_grupos"),
 ]

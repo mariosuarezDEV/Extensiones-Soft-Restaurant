@@ -7,11 +7,13 @@ from .serializers import (
     FoliosfacturadosSerializer,
     FacturasSerializer,
     TempchequesSerializer,
+    GruposSerializer
 )
 from .models import (
     Cheques,
     Cheqdet,
     Chequespagos,
+    Grupos,
     Productos,
     Productosdetalle,
     Foliosfacturados,
@@ -198,3 +200,23 @@ def listar_tempcheques(request):
     tempcheques = Tempcheques.objects.filter(fecha__date=fecha)
     serializer = TempchequesSerializer(tempcheques, many=True)
     return Response(serializer.data)
+
+# Ver todos los grupos
+@api_view(["GET"])
+def listar_grupos(request):
+    grupos = Grupos.objects.all()
+    serializer = GruposSerializer(grupos, many=True)
+    return Response(serializer.data)
+
+# Buscar producto por ID
+@api_view(["GET"])
+def buscar_producto(request, idproducto: str):
+    producto = Productos.objects.filter(idproducto=idproducto).first()
+    idgrupo = producto.idgrupo if producto else None
+    if not producto:
+        return Response({"error": "Producto no encontrado"}, status=status.HTTP_404_NOT_FOUND)
+    return Response({
+        "idproducto": producto.idproducto,
+        "descripcion": producto.descripcion,
+        "grupo": idgrupo.descripcion,
+    })

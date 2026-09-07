@@ -3,7 +3,7 @@ import httpx as htx
 
 SERVER = "http://localhost:8000/ventas"
 
-VENTAS_FECHA = f"{SERVER}/?fecha=2026-06-22"
+VENTAS_FECHA = f"{SERVER}/?fecha=2026-06-21"
 
 ventas_dia = htx.get(f"{VENTAS_FECHA}")
 

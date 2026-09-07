@@ -25,7 +25,7 @@ def get_sustituno() -> tuple[dict, int]:
             "categoria": "otros",
             "impuesto": 0
         },
-        "pepino limon y chia" :{
+            "pepino limon y chia" :{
             "id": "031013",
             "precio": 54,
             "preciosinimpuestos": 46.55,
@@ -49,13 +49,13 @@ def get_sustituno() -> tuple[dict, int]:
         
     }
     
-    pesos = [25, 25, 10, 15, 10, 15]  # Pesos correspondientes a cada producto
+    pesos = [25, 15, 10, 20, 15, 15]  # Pesos correspondientes a cada producto
     """
     Cafe 1/4 -> 25%
-    Cafe 1/2 -> 25%
+    Cafe 1/2 -> 15%
     Pan -> 10%
-    Pepino limon y chia -> 15%
-    Jamaica frutos rojos -> 10%
+    Pepino limon y chia -> 20%
+    Jamaica frutos rojos -> 15%
     Naranjada fresa y albahaca -> 15%
     """
     prod_key = random.choices(list(productos.keys()), weights=pesos)[0] # Se elige un producto aleatorio basado en los pesos definidos

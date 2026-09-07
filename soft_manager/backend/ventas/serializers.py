@@ -7,6 +7,7 @@ from .models import (
     Facturas,
     Foliosfacturados,
     Tempcheques,
+    Grupos
 )
 
 
@@ -21,6 +22,7 @@ class ChequesSerializer(serializers.ModelSerializer):
             "cierre",
             "mesa",
             "nopersonas",
+            "idmesero",
             "cambio",
             "descuento",
             "facturado",
@@ -135,4 +137,12 @@ class TempchequesSerializer(serializers.ModelSerializer):
             "mesa",
             "total",
             "idmesero",
+        ]
+
+class GruposSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Grupos
+        fields = [
+            "idgrupo",
+            "descripcion",
         ]
