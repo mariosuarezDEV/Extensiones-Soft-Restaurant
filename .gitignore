@@ -1,14 +1,77 @@
-# Variables de entorno
-.env
+# Datos exportados: ignorar CSV con cualquier combinacion de mayusculas.
+*.[cC][sS][vV]
 
-#Archivos confidenciales
-*.cvs
-# Caché de Python
+# Variables de entorno y configuracion local.
+.env
+.env.*
+!.env.example
+!.env.*.example
+.pypirc
+local_settings.py
+
+# Entornos virtuales y cache de uv.
+.venv/
+venv/
+env/
+ENV/
+env.bak/
+venv.bak/
+.uv-cache/
+
+# Bytecode y extensiones compiladas de Python.
 __pycache__/
 *.py[cod]
 *$py.class
+*.so
+*.pyd
+.Python
+__pypackages__/
 
-# Entornos virtuales (si usas alguno)
-venv/
-env/
-.venv/
+# Distribuciones y empaquetado.
+build/
+dist/
+.eggs/
+*.egg-info/
+*.egg
+.installed.cfg
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Pruebas, cobertura y herramientas de analisis.
+.pytest_cache/
+.hypothesis/
+.tox/
+.nox/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.ruff_cache/
+.pyre/
+.pytype/
+.cache/
+.ipynb_checkpoints/
+
+# Archivos generados por Django y Flask.
+*.log
+*.sqlite3
+*.sqlite3-journal
+*.sqlite3-shm
+*.sqlite3-wal
+instance/
+.webassets-cache/
+celerybeat-schedule
+celerybeat.pid
+
+# Archivos locales de editores y del sistema.
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# pyproject.toml, uv.lock y .python-version se mantienen versionados.

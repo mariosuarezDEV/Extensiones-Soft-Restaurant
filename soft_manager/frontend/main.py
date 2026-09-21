@@ -12,6 +12,7 @@ db = cliente.mongoffice
 SERVIDORES = {
     "centro": "localhost",
     "araucarias": "localhost",
+    "anahuac": "localhost",
     "desarrollo": "localhost",
 }
 
