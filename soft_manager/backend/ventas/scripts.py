@@ -3,46 +3,48 @@ import random
 def get_sustituno() -> tuple[dict, int]:
 
     # Definir productos
+
+
     productos: dict[str, dict] = {
-        "cacahuate espanol": {
-            "id": "3126004",
-            "precio": 25,
-            "preciosinimpuestos": 21.55,
-            "categoria": "alimentos",
-            "impuesto": 16.00
+        "cafe 1/4": {
+            "id": "V-034003",
+            "precio": 100,
+            "preciosinimpuestos": 100,
+            "categoria": "otros",
+            "impuesto": 0
         },
-        "hot nuts": {
-            "id": "3131003",
-            "precio": 25,
-            "preciosinimpuestos": 21.55,
-            "categoria": "alimentos",
-            "impuesto": 16.00
+        "cafe 1/2": {
+            "id": "V-034002",
+            "precio": 195,
+            "preciosinimpuestos": 195,
+            "categoria": "otros",
+            "impuesto": 0
         },
-        "brownie": {
-            "id": "3119003",
-            "precio": 39 ,
-            "preciosinimpuestos": 33.62,
-            "categoria": "alimentos",
-            "impuesto": 16.00
+        "pan": {
+            "id": "042035",
+            "precio": 65,
+            "preciosinimpuestos": 65,
+            "categoria": "otros",
+            "impuesto": 0
         },
-        "panque" :{
-            "id": "3119005",
-            "precio": 40,
-            "preciosinimpuestos": 34.48,
-            "categoria": "alimentos",
-            "impuesto": 16.00
-        },
-        "americano" :{
-            "id": "3121003",
-            "precio": 39,
-            "preciosinimpuestos": 33.62,
+            "pepino limon y chia" :{
+            "id": "031013",
+            "precio": 54,
+            "preciosinimpuestos": 46.55,
             "categoria": "bebidas",
             "impuesto": 16.00
         },
-        "latte" :{
-            "id": "3127003",
-            "precio": 55,
-            "preciosinimpuestos": 47.41,
+        "jamaica frutos rojos" :{
+            "id": "031015",
+            "precio": 54,
+            "preciosinimpuestos": 46.55,
+            "categoria": "bebidas",
+            "impuesto": 16.00
+        },
+        "naranjada fresa y albahaca" :{
+            "id": "031017",
+            "precio": 54,
+            "preciosinimpuestos": 46.55,
             "categoria": "bebidas",
             "impuesto": 16.00
         },
