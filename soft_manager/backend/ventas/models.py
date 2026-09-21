@@ -590,7 +590,6 @@ class Cheques(models.Model):  # Importante
     totalconpropinacargo_ec = models.BinaryField(blank=True, null=True)
     mv_room = models.CharField(max_length=100)
     mv_lastname = models.CharField(max_length=100)
-    estado = models.BooleanField(blank=True, null=True)
     totalsindescuentoimp = models.DecimalField(
         max_digits=19, decimal_places=4, blank=True, null=True
     )

@@ -51,9 +51,14 @@ def mantenimiento():
             fechas.append(dia)
 
         # Obtener ventas por cada fecha
+        total_ventas = 0
         for fecha in fechas:
             ventas = req.get(f"{API_URL}/ventas?fecha={fecha}")
             ventas = ventas.json()
+            if ventas == []:
+                print(f"No hay ventas para {fecha}; se omite este dia.")
+                continue
+            total_ventas += len(ventas)
             # Pasar a un dataframe
             ventas_df = pd.DataFrame(ventas)
             print(ventas_df.head())
@@ -100,7 +105,7 @@ def mantenimiento():
                 "inicio": fecha_inicio,
                 "fin": fecha_fin,
                 "sucursal": sucursal,
-                "total_ventas": len(ventas),
+                "total_ventas": total_ventas,
             }
         ), 200
 
