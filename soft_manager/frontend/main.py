@@ -1,7 +1,8 @@
 from flask import Flask, jsonify, render_template, request
 import pymongo
 import requests as req
-from datetime import datetime, timedelta
+import os
+from datetime import date, datetime, timedelta
 import pandas as pd
 
 app = Flask(__name__)
@@ -15,6 +16,38 @@ SERVIDORES = {
     "anahuac": "localhost",
     "desarrollo": "localhost",
 }
+
+# IDs de sucursal en la API de historial ("desarrollo" no se reporta)
+ID_SUCURSAL = {"centro": 1, "araucarias": 2, "anahuac": 3}
+
+HISTORIAL_API_URL = os.environ.get("HISTORIAL_API_URL", "").rstrip("/")
+
+
+def registrar_historial(sucursal, fecha_mantenimiento):
+    """Envia el registro del mantenimiento a la API de historial.
+
+    Nunca lanza excepciones: devuelve un dict con el resultado.
+    """
+    id_sucursal = ID_SUCURSAL.get(sucursal)
+    if id_sucursal is None:
+        return {"enviado": False, "motivo": "sucursal sin id en la API"}
+    if not HISTORIAL_API_URL:
+        return {"enviado": False, "motivo": "HISTORIAL_API_URL no configurada"}
+
+    payload = {
+        "id_sucursal": id_sucursal,
+        "fecha_aplicacion": date.today().isoformat(),
+        "fecha_mantenimiento": fecha_mantenimiento.isoformat(),
+    }
+    try:
+        resp = req.post(
+            f"{HISTORIAL_API_URL}/historial_mantenimientos", json=payload, timeout=10
+        )
+        if resp.ok:
+            return {"enviado": True, "payload": payload}
+        return {"enviado": False, "motivo": f"HTTP {resp.status_code}", "payload": payload}
+    except req.RequestException as e:
+        return {"enviado": False, "motivo": str(e), "payload": payload}
 
 
 @app.route("/")
@@ -100,12 +133,19 @@ def mantenimiento():
                 except Exception as e:
                     print(f"Error al guardar la venta con folio {folio}: {e}")
 
+        # Registrar en el historial con la ultima fecha del rango
+        historial = registrar_historial(sucursal, max(fechas)) if fechas else {
+            "enviado": False,
+            "motivo": "rango de fechas vacio",
+        }
+
         return jsonify(
             {
                 "inicio": fecha_inicio,
                 "fin": fecha_fin,
                 "sucursal": sucursal,
                 "total_ventas": total_ventas,
+                "historial": historial,
             }
         ), 200
 
