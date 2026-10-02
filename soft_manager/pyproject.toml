@@ -21,6 +21,7 @@ dependencies = [
     "pandas>=2.3.2",
     "pymongo>=4.14.1",
     "pyrefly>=0.30.0",
+    "python-dotenv>=1.2.4",
     "requests>=2.32.5",
 ]
 
