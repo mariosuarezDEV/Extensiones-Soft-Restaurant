@@ -12,7 +12,7 @@ load_dotenv(Path(__file__).parent / ".env")
 
 app = Flask(__name__)
 
-cliente = pymongo.MongoClient("mongodb://26.142.131.213:27017/")
+cliente = pymongo.MongoClient("mongodb://localhost:27017/")
 db = cliente.mongoffice
 
 SERVIDORES = {
@@ -25,7 +25,15 @@ SERVIDORES = {
 # IDs de sucursal en la API de historial ("desarrollo" no se reporta)
 ID_SUCURSAL = {"centro": 1, "araucarias": 2, "anahuac": 3}
 
-HISTORIAL_API_URL = os.environ.get("HISTORIAL_API_URL", "").rstrip("/")
+def _normalizar_url(valor):
+    """Quita comillas/espacios/slash final y agrega http:// si falta el esquema."""
+    valor = valor.strip().strip("'\"").rstrip("/")
+    if valor and "://" not in valor:
+        valor = f"http://{valor}"
+    return valor
+
+
+HISTORIAL_API_URL = _normalizar_url(os.environ.get("HISTORIAL_API_URL", ""))
 
 
 def registrar_historial(sucursal, fecha_mantenimiento):
