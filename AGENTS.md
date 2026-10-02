@@ -14,6 +14,8 @@ Estas instrucciones aplican a todo el repositorio.
   con Django y MongoDB. Sus plantillas están en `frontend/templates/`.
 - `soft_manager/mant_express.py` ejecuta operaciones de mantenimiento.
 - Consulta `README.md` para instalar herramientas y configurar las conexiones.
+- `CAMBIOS.md` registra los cambios recientes; léelo para conocer el estado
+  actual y actualízalo al hacer cambios relevantes.
 
 ## Comandos de desarrollo
 
@@ -51,8 +53,9 @@ Agrega dependencias con `uv add` desde `soft_manager/` y versiona tanto
 - Los modelos con `managed = False` representan tablas existentes. No cambies
   esa opción ni generes cambios de esquema como parte de una instalación local.
 - No agregues credenciales, datos de ventas reales ni archivos `.env`.
-  Las conexiones actuales se configuran en el código; no supongas que se carga
-  automáticamente un archivo `.env`.
+  Las conexiones actuales se configuran en el código. La única excepción es
+  `HISTORIAL_API_URL`, que `frontend/main.py` carga desde `frontend/.env`
+  (no versionado); no supongas que otras variables se cargan de ahí.
 
 ## Validación y datos
 
