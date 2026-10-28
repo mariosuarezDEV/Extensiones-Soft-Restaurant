@@ -36,9 +36,13 @@ services:
   mongo:
     image: mongo:7
     restart: unless-stopped
-    # Acceso desde el equipo (Compass/mongosh); sin autenticacion, solo localhost
+    # Publico (todas las interfaces): exige usuario y contrasena
+    command: ["mongod", "--auth"]
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:?Define MONGO_PASSWORD en .env}
     ports:
-      - "127.0.0.1:27018:27017"
+      - "27018:27017"
     volumes:
       - mongo_data:/data/db
     healthcheck:
@@ -58,7 +62,7 @@ services:
       BACKEND_CENTRO: backend-centro
       BACKEND_ARAUCARIAS: backend-araucarias
       BACKEND_ANAHUAC: backend-anahuac
-      MONGO_URI: ${MONGO_URI:-mongodb://mongo:27017/}
+      MONGO_URI: ${MONGO_URI:-mongodb://${MONGO_USER:-admin}:${MONGO_PASSWORD}@mongo:27017/?authSource=admin}
       HISTORIAL_API_URL: ${HISTORIAL_API_URL:-}
     depends_on:
       mongo:
