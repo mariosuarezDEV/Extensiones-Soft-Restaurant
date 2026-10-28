@@ -155,8 +155,9 @@ docker compose up --build
 Abre [http://localhost:5000](http://localhost:5000). Solo `backend-araucarias`
 abre su puerto en el equipo (`http://127.0.0.1:8000`); los demás backends son
 internos. MongoDB corre en el
-contenedor `mongo` del Compose (`MONGO_URI=mongodb://mongo:27017/`, sin puerto
-publicado) y guarda los datos en el volumen `mongo_data`.
+contenedor `mongo` del Compose (`MONGO_URI=mongodb://mongo:27017/`). Desde el
+equipo se accede en `mongodb://127.0.0.1:27018` (solo localhost; no tiene
+autenticación, actívala antes de abrirlo a la red) y guarda los datos en el volumen `mongo_data`.
 
 Para llevar respaldos de un Mongo anterior: `mongodump --archive` en el equipo
 anterior y `docker compose exec -T mongo mongorestore --archive < respaldo`.
