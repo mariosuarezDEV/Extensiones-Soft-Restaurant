@@ -36,11 +36,7 @@ services:
   mongo:
     image: mongo:7
     restart: unless-stopped
-    # Publico (todas las interfaces): exige usuario y contrasena
-    command: ["mongod", "--auth"]
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-admin}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:?Define MONGO_PASSWORD en .env}
+    # Publico (todas las interfaces) y SIN autenticacion
     ports:
       - "27018:27017"
     volumes:
@@ -62,7 +58,7 @@ services:
       BACKEND_CENTRO: backend-centro
       BACKEND_ARAUCARIAS: backend-araucarias
       BACKEND_ANAHUAC: backend-anahuac
-      MONGO_URI: ${MONGO_URI:-mongodb://${MONGO_USER:-admin}:${MONGO_PASSWORD}@mongo:27017/?authSource=admin}
+      MONGO_URI: ${MONGO_URI:-mongodb://mongo:27017/}
       HISTORIAL_API_URL: ${HISTORIAL_API_URL:-}
     depends_on:
       mongo:

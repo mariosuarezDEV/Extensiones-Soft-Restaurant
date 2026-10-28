@@ -21,9 +21,8 @@ llama (`SERVIDORES` en `frontend/main.py`); no hay que editar IPs.
 - `frontend/main.py`: `SERVIDORES` lee `BACKEND_<SUCURSAL>`, Mongo lee
   `MONGO_URI`, y `/backup/<folio>` acepta `?sucursal=`.
 
-- Servicio `mongo` (`mongo:7`, volumen `mongo_data`, publicado en `0.0.0.0:27018` con `--auth`; requiere
-  `MONGO_USER`/`MONGO_PASSWORD` en `.env`) que
-  usa el frontend (URI con usuario/contraseña por defecto).
+- Servicio `mongo` (`mongo:7`, volumen `mongo_data`, publicado en `0.0.0.0:27018`, sin autenticación) que
+  usa el frontend con `MONGO_URI=mongodb://mongo:27017/`.
 
 - Solo `backend-araucarias` publica `127.0.0.1:8000`; los otros backends no.
 
