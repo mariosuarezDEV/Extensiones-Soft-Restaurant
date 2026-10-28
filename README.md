@@ -152,8 +152,12 @@ cp .env.example .env   # completa DB_HOST_* (IP Tailscale) y DB_PASSWORD
 docker compose up --build
 ```
 
-Abre [http://localhost:5000](http://localhost:5000). MongoDB se toma del equipo
-anfitrión (`MONGO_URI`, por defecto `host.docker.internal:27017`).
+Abre [http://localhost:5000](http://localhost:5000). MongoDB corre en el
+contenedor `mongo` del Compose (`MONGO_URI=mongodb://mongo:27017/`, sin puerto
+publicado) y guarda los datos en el volumen `mongo_data`.
+
+Para llevar respaldos de un Mongo anterior: `mongodump --archive` en el equipo
+anterior y `docker compose exec -T mongo mongorestore --archive < respaldo`.
 
 ## API de ventas
 

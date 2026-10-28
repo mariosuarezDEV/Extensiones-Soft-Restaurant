@@ -30,6 +30,17 @@ services:
       <<: *backend-env
       DB_HOST: ${DB_HOST_ANAHUAC}
 
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   frontend:
     build:
       context: .
@@ -41,11 +52,17 @@ services:
       BACKEND_CENTRO: backend-centro
       BACKEND_ARAUCARIAS: backend-araucarias
       BACKEND_ANAHUAC: backend-anahuac
-      MONGO_URI: ${MONGO_URI:-mongodb://host.docker.internal:27017/}
+      MONGO_URI: ${MONGO_URI:-mongodb://mongo:27017/}
       HISTORIAL_API_URL: ${HISTORIAL_API_URL:-}
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     depends_on:
-      - backend-centro
-      - backend-araucarias
-      - backend-anahuac
+      mongo:
+        condition: service_healthy
+      backend-centro:
+        condition: service_started
+      backend-araucarias:
+        condition: service_started
+      backend-anahuac:
+        condition: service_started
+
+volumes:
+  mongo_data:

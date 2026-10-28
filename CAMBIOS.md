@@ -21,6 +21,9 @@ llama (`SERVIDORES` en `frontend/main.py`); no hay que editar IPs.
 - `frontend/main.py`: `SERVIDORES` lee `BACKEND_<SUCURSAL>`, Mongo lee
   `MONGO_URI`, y `/backup/<folio>` acepta `?sucursal=`.
 
+- Servicio `mongo` (`mongo:7`, volumen `mongo_data`, sin puerto publicado) que
+  usa el frontend con `MONGO_URI=mongodb://mongo:27017/`.
+
 ### Uso
 Requiere Tailscale activo en el equipo que corre Docker. Desde `soft_manager/`:
 copia `.env.example` a `.env`, completa las IPs Tailscale y ejecuta
