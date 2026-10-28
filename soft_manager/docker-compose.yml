@@ -20,6 +20,9 @@ services:
 
   backend-araucarias:
     <<: *backend
+    # Unico backend con puerto abierto en el equipo (solo localhost)
+    ports:
+      - "127.0.0.1:8000:8000"
     environment:
       <<: *backend-env
       DB_HOST: ${DB_HOST_ARAUCARIAS}

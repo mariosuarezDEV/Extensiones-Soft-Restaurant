@@ -152,7 +152,9 @@ cp .env.example .env   # completa DB_HOST_* (IP Tailscale) y DB_PASSWORD
 docker compose up --build
 ```
 
-Abre [http://localhost:5000](http://localhost:5000). MongoDB corre en el
+Abre [http://localhost:5000](http://localhost:5000). Solo `backend-araucarias`
+abre su puerto en el equipo (`http://127.0.0.1:8000`); los demás backends son
+internos. MongoDB corre en el
 contenedor `mongo` del Compose (`MONGO_URI=mongodb://mongo:27017/`, sin puerto
 publicado) y guarda los datos en el volumen `mongo_data`.
 

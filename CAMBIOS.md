@@ -24,6 +24,8 @@ llama (`SERVIDORES` en `frontend/main.py`); no hay que editar IPs.
 - Servicio `mongo` (`mongo:7`, volumen `mongo_data`, sin puerto publicado) que
   usa el frontend con `MONGO_URI=mongodb://mongo:27017/`.
 
+- Solo `backend-araucarias` publica `127.0.0.1:8000`; los otros backends no.
+
 ### Uso
 Requiere Tailscale activo en el equipo que corre Docker. Desde `soft_manager/`:
 copia `.env.example` a `.env`, completa las IPs Tailscale y ejecuta
