@@ -24,7 +24,18 @@ import random
 from datetime import timedelta, datetime, date
 from django.utils import timezone
 from rest_framework import status
-from .scripts import get_sustituno
+from . import prodsuc, scripts
+
+
+def fuente_productos(sucursal: str | None):
+    """Devuelve el modulo con la lista de productos segun la sucursal.
+
+    Solo Anahuac usa los productos de scripts.py; cualquier otra
+    sucursal (centro, araucarias, etc.) usa los de prodsuc.py.
+    """
+    if sucursal and sucursal.strip().lower() == "anahuac":
+        return scripts
+    return prodsuc
 
 
 @api_view(["GET"])
@@ -103,7 +114,10 @@ def ajuste_folio(request, folio: int):
     # TODO - Obtener el cheque, chequedet y chequespagos
     cheque = Cheques.objects.filter(folio=folio)
 
-    producto_info, cantidad = get_sustituno()
+    # La sucursal llega como query param (?sucursal=...); define la lista de productos
+    producto_info, cantidad = fuente_productos(
+        request.query_params.get("sucursal")
+    ).get_sustituno()
     """
     producto_info -> id, precio, preciosinimpuestos, categoria (otros, bebidas)
     cantidad -> int

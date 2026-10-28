@@ -9,7 +9,9 @@ Estas instrucciones aplican a todo el repositorio.
 - `soft_manager/backend/` contiene Django, Django REST Framework y la API de
   ventas. La configuración está en `backend/settings.py` dentro de esa carpeta.
 - `soft_manager/backend/ventas/` contiene modelos del esquema de Soft Restaurant,
-  serializadores, rutas, vistas y selección de productos en `scripts.py`.
+  serializadores, rutas, vistas y selección de productos en `scripts.py`
+  (Anahuac) y `prodsuc.py` (resto de sucursales), elegidos por la vista de
+  ajuste según el query param `sucursal`.
 - `soft_manager/frontend/main.py` contiene la aplicación Flask y su integración
   con Django y MongoDB. Sus plantillas están en `frontend/templates/`.
 - `soft_manager/mant_express.py` ejecuta operaciones de mantenimiento.

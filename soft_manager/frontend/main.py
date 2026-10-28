@@ -142,7 +142,10 @@ def mantenimiento():
                     # Validar si el folio actual este en el dataframe filtrado
                     if folio in ventas_filtradas["folio"].values:
                         # Aplicar mantenimiento a la venta
-                        ajuste = req.post(f"{API_URL}/ventas/ajuste/{folio}")
+                        ajuste = req.post(
+                            f"{API_URL}/ventas/ajuste/{folio}",
+                            params={"sucursal": sucursal},
+                        )
                         if ajuste.status_code == 200:
                             print(f"Venta con folio {folio} ajustada")
                         else:

@@ -4,6 +4,31 @@ Resumen de los cambios recientes para que una IA entienda el estado actual del
 proyecto sin revisar todo el historial. Agrega las novedades al inicio.
 Complementa a `AGENTS.md`.
 
+## 2026-10-12 — Productos por sucursal (rama `dinamicproducts`)
+
+### Qué hace
+El ajuste de ventas (`POST /ventas/ajuste/<folio>`) elige la lista de
+productos según la sucursal, que llega como query param `?sucursal=...`:
+
+- `anahuac` → `backend/ventas/scripts.py`
+- cualquier otra (`centro`, `araucarias`, `desarrollo` o sin parámetro) →
+  `backend/ventas/prodsuc.py` (nuevo, antes sin versionar)
+
+### Cambios
+- El selector es `fuente_productos(sucursal)` en `backend/ventas/views.py`;
+  ignora mayúsculas y espacios. Ambos módulos exponen `get_sustituno()`.
+- El frontend (`frontend/main.py`) envía la sucursal del formulario en el POST
+  de ajuste: `req.post(url, params={"sucursal": sucursal})`.
+- `mant_express.py` no envía sucursal, así que ahora usa `prodsuc.py` por
+  defecto (antes usaba `scripts.py`).
+
+### Pruebas
+- `backend/ventas/tests.py`: pruebas del selector con `SimpleTestCase`, sin
+  base de datos (`uv run python manage.py test ventas`).
+- `frontend/test_mantenimiento.py`: las llamadas esperadas al POST de ajuste
+  ahora incluyen `params={"sucursal": ...}` y se agregó `historial` a la
+  respuesta esperada (esa expectativa faltaba desde la rama `anahuac`).
+
 ## 2026-10-02 — Historial de mantenimientos (rama `anahuac`)
 
 Commits: `29c63df`, `2b0b1f8`, `f936b5a`.

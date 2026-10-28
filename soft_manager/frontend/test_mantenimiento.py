@@ -64,7 +64,12 @@ class MantenimientoTests(unittest.TestCase):
                         respuestas[url_detalle] = detalle
                         consultas.append(call(url_detalle))
                         respaldos.append(call(detalle))
-                        ajustes.append(call(f"http://localhost:8000/ventas/ajuste/{folio}"))
+                        ajustes.append(
+                            call(
+                                f"http://localhost:8000/ventas/ajuste/{folio}",
+                                params={"sucursal": "desarrollo"},
+                            )
+                        )
 
                 with (
                     patch.object(self.main, "db") as db,
@@ -94,6 +99,13 @@ class MantenimientoTests(unittest.TestCase):
                         "fin": fin.isoformat(),
                         "sucursal": "desarrollo",
                         "total_ventas": sum(dias_con_ventas),
+                        "historial": [
+                            {
+                                "fecha": inicio.isoformat(),
+                                "enviado": False,
+                                "motivo": "sucursal sin id en la API",
+                            }
+                        ],
                     },
                 )
                 self.assertEqual(get.call_args_list, consultas)
