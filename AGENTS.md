@@ -15,6 +15,12 @@ Estas instrucciones aplican a todo el repositorio.
 - `soft_manager/frontend/main.py` contiene la aplicación Flask y su integración
   con Django y MongoDB. Sus plantillas están en `frontend/templates/`.
 - `soft_manager/mant_express.py` ejecuta operaciones de mantenimiento.
+- `soft_manager/docker-compose.yml` levanta un backend por sucursal
+  (`backend-centro`, `backend-araucarias`, `backend-anahuac`, misma imagen de
+  `Dockerfile`), el `frontend` (`Dockerfile.frontend`) y `mongo`. Las variables
+  van en `soft_manager/.env` (no versionado; plantilla en `.env.example`).
+- `soft_manager/openssl_legacy.cnf` habilita TLS antiguo (SECLEVEL=0) para SQL
+  Server; el `Dockerfile` lo activa con `OPENSSL_CONF`.
 - Consulta `README.md` para instalar herramientas y configurar las conexiones.
 - `CAMBIOS.md` registra los cambios recientes; léelo para conocer el estado
   actual y actualízalo al hacer cambios relevantes.
@@ -42,6 +48,14 @@ uv run flask --app main.py run
 ```
 
 Django y Flask se ejecutan en terminales separadas y comparten `.venv`.
+
+Con Docker, desde `soft_manager/` (requiere Tailscale activo en el equipo y un
+`.env` copiado de `.env.example`):
+
+```console
+docker compose config
+docker compose up --build
+```
 Agrega dependencias con `uv add` desde `soft_manager/` y versiona tanto
 `pyproject.toml` como `uv.lock`.
 
@@ -55,9 +69,18 @@ Agrega dependencias con `uv add` desde `soft_manager/` y versiona tanto
 - Los modelos con `managed = False` representan tablas existentes. No cambies
   esa opción ni generes cambios de esquema como parte de una instalación local.
 - No agregues credenciales, datos de ventas reales ni archivos `.env`.
-  Las conexiones actuales se configuran en el código. La única excepción es
-  `HISTORIAL_API_URL`, que `frontend/main.py` carga desde `frontend/.env`
-  (no versionado); no supongas que otras variables se cargan de ahí.
+  Las conexiones se configuran en el código, con estas excepciones:
+  `HISTORIAL_API_URL` (`frontend/main.py` la carga de `frontend/.env`, no
+  versionado) y las variables de entorno que lee el código y define
+  `docker-compose.yml`: `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`,
+  `DB_PASSWORD` (backend), `BACKEND_<SUCURSAL>` y `MONGO_URI` (frontend). Sus
+  defaults conservan el comportamiento sin Docker; `.env.example` solo lleva
+  placeholders.
+- En Docker, el frontend elige el backend por sucursal con `SERVIDORES`
+  (`frontend/main.py`) y los nombres de servicio de Compose; no se cambia la IP
+  del backend a mano. Solo `backend-araucarias` publica `127.0.0.1:8000`.
+- MongoDB del Compose se publica en `0.0.0.0:27018` sin autenticación por
+  decisión del responsable; no lo cambies sin pedirlo y recuerda el riesgo.
 
 ## Validación y datos
 
