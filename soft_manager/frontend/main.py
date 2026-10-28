@@ -12,14 +12,17 @@ load_dotenv(Path(__file__).parent / ".env")
 
 app = Flask(__name__)
 
-cliente = pymongo.MongoClient("mongodb://localhost:27017/")
+cliente = pymongo.MongoClient(
+    os.environ.get("MONGO_URI", "mongodb://localhost:27017/")
+)
 db = cliente.mongoffice
 
 SERVIDORES = {
-    "centro": "localhost",
-    "araucarias": "localhost",
-    "anahuac": "localhost",
-    "desarrollo": "localhost",
+    # En Docker Compose cada variable apunta al servicio de esa sucursal
+    "centro": os.environ.get("BACKEND_CENTRO", "localhost"),
+    "araucarias": os.environ.get("BACKEND_ARAUCARIAS", "localhost"),
+    "anahuac": os.environ.get("BACKEND_ANAHUAC", "localhost"),
+    "desarrollo": os.environ.get("BACKEND_DESARROLLO", "localhost"),
 }
 
 # IDs de sucursal en la API de historial ("desarrollo" no se reporta)
@@ -182,7 +185,9 @@ def listar_ventas():
 
 @app.route("/backup/<int:folio>", methods=["GET"])
 def guardar_venta(folio):
-    venta = req.get(f"http://127.0.0.1:8000/ventas/{folio}")
+    sucursal = request.args.get("sucursal", "desarrollo")
+    ip_server = SERVIDORES.get(sucursal, SERVIDORES["desarrollo"])
+    venta = req.get(f"http://{ip_server}:8000/ventas/{folio}")
     venta = venta.json()
     try:
         db.ventas.insert_one(venta)

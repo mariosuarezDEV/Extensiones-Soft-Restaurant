@@ -138,6 +138,23 @@ Estos son servidores de desarrollo. Referencias:
 [runserver de Django](https://docs.djangoproject.com/en/5.2/ref/django-admin/#runserver)
 y [ejecución de Flask](https://flask.palletsprojects.com/en/stable/quickstart/#a-minimal-application).
 
+## Docker Compose (una sucursal por backend)
+
+`soft_manager/docker-compose.yml` ejecuta un backend por sucursal (centro,
+araucarias, anahuac) y el frontend. El selector de sucursal del frontend elige
+el backend; no hay que cambiar IPs. Los backends usan `openssl_legacy.cnf`
+para conectarse a SQL Server. Tailscale debe estar activo en el equipo que
+ejecuta Docker.
+
+```console
+cd soft_manager
+cp .env.example .env   # completa DB_HOST_* (IP Tailscale) y DB_PASSWORD
+docker compose up --build
+```
+
+Abre [http://localhost:5000](http://localhost:5000). MongoDB se toma del equipo
+anfitrión (`MONGO_URI`, por defecto `host.docker.internal:27017`).
+
 ## API de ventas
 
 Las rutas se definen en `soft_manager/backend/ventas/urls.py`.

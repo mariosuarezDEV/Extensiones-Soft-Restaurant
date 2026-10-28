@@ -1,0 +1,51 @@
+# Un backend por sucursal (misma imagen) y un frontend que elige a cuál llamar.
+# Requiere Tailscale activo en el equipo que corre Docker.
+x-backend: &backend
+  build:
+    context: .
+    dockerfile: Dockerfile
+  restart: unless-stopped
+  environment: &backend-env
+    DB_NAME: ${DB_NAME:-softrestaurant11}
+    DB_USER: ${DB_USER:-sa}
+    DB_PASSWORD: ${DB_PASSWORD}
+    DB_PORT: ${DB_PORT:-1433}
+
+services:
+  backend-centro:
+    <<: *backend
+    environment:
+      <<: *backend-env
+      DB_HOST: ${DB_HOST_CENTRO}
+
+  backend-araucarias:
+    <<: *backend
+    environment:
+      <<: *backend-env
+      DB_HOST: ${DB_HOST_ARAUCARIAS}
+
+  backend-anahuac:
+    <<: *backend
+    environment:
+      <<: *backend-env
+      DB_HOST: ${DB_HOST_ANAHUAC}
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      BACKEND_CENTRO: backend-centro
+      BACKEND_ARAUCARIAS: backend-araucarias
+      BACKEND_ANAHUAC: backend-anahuac
+      MONGO_URI: ${MONGO_URI:-mongodb://host.docker.internal:27017/}
+      HISTORIAL_API_URL: ${HISTORIAL_API_URL:-}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - backend-centro
+      - backend-araucarias
+      - backend-anahuac

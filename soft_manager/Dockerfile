@@ -29,6 +29,10 @@ RUN uv sync --locked --no-install-project --no-dev
 
 COPY backend ./backend
 
+# Permite TLS antiguo (SQL Server de las sucursales).
+COPY openssl_legacy.cnf /app/openssl_legacy.cnf
+ENV OPENSSL_CONF=/app/openssl_legacy.cnf
+
 WORKDIR /app/backend
 
 EXPOSE 8000

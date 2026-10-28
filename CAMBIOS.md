@@ -4,6 +4,29 @@ Resumen de los cambios recientes para que una IA entienda el estado actual del
 proyecto sin revisar todo el historial. Agrega las novedades al inicio.
 Complementa a `AGENTS.md`.
 
+## 2026-10-28 — Un backend por sucursal con Docker Compose
+
+### Qué hace
+`soft_manager/docker-compose.yml` levanta `backend-centro`,
+`backend-araucarias` y `backend-anahuac` (misma imagen, distinto `DB_HOST`) y
+el `frontend`. El selector de sucursal del frontend ya decide a qué backend se
+llama (`SERVIDORES` en `frontend/main.py`); no hay que editar IPs.
+
+### Cambios
+- `backend/backend/settings.py`: `DATABASES` lee `DB_HOST`, `DB_PORT`,
+  `DB_NAME`, `DB_USER`, `DB_PASSWORD` (defaults = valores anteriores).
+- `Dockerfile`: copia `openssl_legacy.cnf` y fija `OPENSSL_CONF`.
+- Nuevo `Dockerfile.frontend`, `docker-compose.yml` y `.env.example`;
+  `.dockerignore` ya no excluye `frontend`.
+- `frontend/main.py`: `SERVIDORES` lee `BACKEND_<SUCURSAL>`, Mongo lee
+  `MONGO_URI`, y `/backup/<folio>` acepta `?sucursal=`.
+
+### Uso
+Requiere Tailscale activo en el equipo que corre Docker. Desde `soft_manager/`:
+copia `.env.example` a `.env`, completa las IPs Tailscale y ejecuta
+`docker compose up --build`; el frontend queda en http://localhost:5000.
+Sin Docker todo funciona como antes (defaults a `localhost`).
+
 ## 2026-10-12 — Productos por sucursal (rama `dinamicproducts`)
 
 ### Qué hace
