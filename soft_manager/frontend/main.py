@@ -1,19 +1,73 @@
 from flask import Flask, jsonify, render_template, request
 import pymongo
 import requests as req
-from datetime import datetime, timedelta
+import os
+from datetime import date, datetime, timedelta
+from pathlib import Path
 import pandas as pd
+from dotenv import load_dotenv
+
+# .env en la raiz del frontend (independiente del directorio de ejecucion)
+load_dotenv(Path(__file__).parent / ".env")
 
 app = Flask(__name__)
 
-cliente = pymongo.MongoClient("mongodb://100.109.93.61:27017/")
+cliente = pymongo.MongoClient(
+    os.environ.get("MONGO_URI", "mongodb://localhost:27017/")
+)
 db = cliente.mongoffice
 
 SERVIDORES = {
-    "centro": "26.61.16.123",
-    "araucarias": "26.217.212.35",
-    "desarrollo": "26.114.158.30",
+    # En Docker Compose cada variable apunta al servicio de esa sucursal
+    "centro": os.environ.get("BACKEND_CENTRO", "localhost"),
+    "araucarias": os.environ.get("BACKEND_ARAUCARIAS", "localhost"),
+    "anahuac": os.environ.get("BACKEND_ANAHUAC", "localhost"),
+    "desarrollo": os.environ.get("BACKEND_DESARROLLO", "localhost"),
 }
+
+# IDs de sucursal en la API de historial ("desarrollo" no se reporta)
+ID_SUCURSAL = {"centro": 1, "araucarias": 2, "anahuac": 3}
+
+def _normalizar_url(valor):
+    """Quita comillas/espacios/slash final y agrega http:// si falta el esquema."""
+    valor = valor.strip().strip("'\"").rstrip("/")
+    if valor and "://" not in valor:
+        valor = f"http://{valor}"
+    return valor
+
+
+HISTORIAL_API_URL = _normalizar_url(os.environ.get("HISTORIAL_API_URL", ""))
+
+
+def registrar_historial(sucursal, fecha_mantenimiento):
+    """Envia el registro del mantenimiento a la API de historial.
+
+    Nunca lanza excepciones: devuelve un dict con el resultado.
+    """
+    id_sucursal = ID_SUCURSAL.get(sucursal)
+    if id_sucursal is None:
+        return {"enviado": False, "motivo": "sucursal sin id en la API"}
+    if not HISTORIAL_API_URL:
+        return {"enviado": False, "motivo": "HISTORIAL_API_URL no configurada"}
+
+    payload = {
+        "id_sucursal": id_sucursal,
+        "fecha_aplicacion": date.today().isoformat(),
+        "fecha_mantenimiento": fecha_mantenimiento.isoformat(),
+    }
+    try:
+        resp = req.post(
+            f"{HISTORIAL_API_URL}/historial_mantenimientos", json=payload, timeout=10
+        )
+        if resp.ok:
+            return {"enviado": True, "payload": payload}
+        return {
+            "enviado": False,
+            "motivo": f"HTTP {resp.status_code}",
+            "payload": payload,
+        }
+    except req.RequestException as e:
+        return {"enviado": False, "motivo": str(e), "payload": payload}
 
 
 @app.route("/")
@@ -50,9 +104,14 @@ def mantenimiento():
             fechas.append(dia)
 
         # Obtener ventas por cada fecha
+        total_ventas = 0
         for fecha in fechas:
             ventas = req.get(f"{API_URL}/ventas?fecha={fecha}")
             ventas = ventas.json()
+            if ventas == []:
+                print(f"No hay ventas para {fecha}; se omite este dia.")
+                continue
+            total_ventas += len(ventas)
             # Pasar a un dataframe
             ventas_df = pd.DataFrame(ventas)
             print(ventas_df.head())
@@ -86,7 +145,10 @@ def mantenimiento():
                     # Validar si el folio actual este en el dataframe filtrado
                     if folio in ventas_filtradas["folio"].values:
                         # Aplicar mantenimiento a la venta
-                        ajuste = req.post(f"{API_URL}/ventas/ajuste/{folio}")
+                        ajuste = req.post(
+                            f"{API_URL}/ventas/ajuste/{folio}",
+                            params={"sucursal": sucursal},
+                        )
                         if ajuste.status_code == 200:
                             print(f"Venta con folio {folio} ajustada")
                         else:
@@ -94,12 +156,22 @@ def mantenimiento():
                 except Exception as e:
                     print(f"Error al guardar la venta con folio {folio}: {e}")
 
+        # Registrar en el historial cada fecha del rango
+        historial = []
+        for fecha in fechas:
+            resultado = registrar_historial(sucursal, fecha)
+            historial.append({"fecha": fecha.isoformat(), **resultado})
+            # Si no se puede enviar por configuracion, no repetir el mismo error
+            if not resultado["enviado"] and "payload" not in resultado:
+                break
+
         return jsonify(
             {
                 "inicio": fecha_inicio,
                 "fin": fecha_fin,
                 "sucursal": sucursal,
-                "total_ventas": len(ventas),
+                "total_ventas": total_ventas,
+                "historial": historial,
             }
         ), 200
 
@@ -113,7 +185,9 @@ def listar_ventas():
 
 @app.route("/backup/<int:folio>", methods=["GET"])
 def guardar_venta(folio):
-    venta = req.get(f"http://127.0.0.1:8000/ventas/{folio}")
+    sucursal = request.args.get("sucursal", "desarrollo")
+    ip_server = SERVIDORES.get(sucursal, SERVIDORES["desarrollo"])
+    venta = req.get(f"http://{ip_server}:8000/ventas/{folio}")
     venta = venta.json()
     try:
         db.ventas.insert_one(venta)

@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -86,11 +87,11 @@ WSGI_APPLICATION = "backend.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "mssql",
-        "NAME": "softrestaurant11",
-        "USER": "sa",
-        "PASSWORD": "National09",
-        "HOST": "localhost",
-        "PORT": "1433",
+        "NAME": os.environ.get("DB_NAME", "softrestaurant11"),
+        "USER": os.environ.get("DB_USER", "sa"),
+        "PASSWORD": os.environ.get("DB_PASSWORD", "National09"),
+        "HOST": os.environ.get("DB_HOST", "26.33.151.120"),
+        "PORT": os.environ.get("DB_PORT", "1433"),
         "OPTIONS": {
             "driver": "ODBC Driver 18 for SQL Server",
             "extra_params": "TrustServerCertificate=yes;",

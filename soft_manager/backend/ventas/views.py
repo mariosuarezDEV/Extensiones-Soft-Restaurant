@@ -7,11 +7,13 @@ from .serializers import (
     FoliosfacturadosSerializer,
     FacturasSerializer,
     TempchequesSerializer,
+    GruposSerializer
 )
 from .models import (
     Cheques,
     Cheqdet,
     Chequespagos,
+    Grupos,
     Productos,
     Productosdetalle,
     Foliosfacturados,
@@ -22,7 +24,18 @@ import random
 from datetime import timedelta, datetime, date
 from django.utils import timezone
 from rest_framework import status
-from .scripts import get_sustituno
+from . import prodsuc, scripts
+
+
+def fuente_productos(sucursal: str | None):
+    """Devuelve el modulo con la lista de productos segun la sucursal.
+
+    Solo Anahuac usa los productos de scripts.py; cualquier otra
+    sucursal (centro, araucarias, etc.) usa los de prodsuc.py.
+    """
+    if sucursal and sucursal.strip().lower() == "anahuac":
+        return scripts
+    return prodsuc
 
 
 @api_view(["GET"])
@@ -101,7 +114,14 @@ def ajuste_folio(request, folio: int):
     # TODO - Obtener el cheque, chequedet y chequespagos
     cheque = Cheques.objects.filter(folio=folio)
 
-    producto_info, cantidad = get_sustituno()
+    # La sucursal llega como query param (?sucursal=...); define la lista de productos
+    producto_info, cantidad = fuente_productos(
+        request.query_params.get("sucursal")
+    ).get_sustituno()
+    """
+    producto_info -> id, precio, preciosinimpuestos, categoria (otros, bebidas)
+    cantidad -> int
+    """
 
     fecha = cheque.first().fecha if cheque.exists() else None
     cheque.update(
@@ -118,11 +138,11 @@ def ajuste_folio(request, folio: int):
         propinaincluida=0,
         propinamanual=0,
         totalarticulos=cantidad,
-        subtotal=producto_info['precio'] * cantidad,
-        subtotalsinimpuestos=producto_info['precio'] * cantidad,
+        subtotal=producto_info['preciosinimpuestos'] * cantidad,
+        subtotalsinimpuestos= None, # En la BD es nullable, se puede dejar como None
         total=producto_info['precio'] * cantidad,
         totalconpropina=producto_info['precio'] * cantidad,
-        totalimpuesto1=producto_info['precio'] * cantidad,
+        totalimpuesto1=(producto_info['precio'] * cantidad) - (producto_info['preciosinimpuestos'] * cantidad),
         cargo=0,
         totalconcargo=producto_info['precio'] * cantidad,
         totalconpropinacargo=producto_info['precio'] * cantidad,
@@ -133,10 +153,10 @@ def ajuste_folio(request, folio: int):
         otros=0,
         propina=0,
         propinatarjeta=0,
-        totalsindescuento=producto_info['precio'] * cantidad,
-        totalalimentos=0,
-        totalbebidas=0,
-        totalotros=producto_info['precio'] * cantidad,
+        totalsindescuento=producto_info['preciosinimpuestos'] * cantidad,
+        totalalimentos=producto_info['preciosinimpuestos'] * cantidad if producto_info['categoria'] == 'alimentos' else 0,
+        totalbebidas= producto_info['preciosinimpuestos'] * cantidad if producto_info['categoria'] == 'bebidas' else 0,
+        totalotros=producto_info['preciosinimpuestos'] * cantidad if producto_info['categoria'] == 'otros' else 0,
         totaldescuentos=0,
         totaldescuentoalimentos=0,
         totaldescuentobebidas=0,
@@ -146,13 +166,13 @@ def ajuste_folio(request, folio: int):
         totalcortesiabebidas=0,
         totalcortesiaotros=0,
         totaldescuentoycortesia=0,
-        totalalimentossindescuentos=0,
-        totalbebidassindescuentos=0,
-        totalotrossindescuentos=producto_info['precio'] * cantidad,
+        totalalimentossindescuentos=producto_info['preciosinimpuestos'] * cantidad if producto_info['categoria'] == 'alimentos' else 0,
+        totalbebidassindescuentos= producto_info['preciosinimpuestos'] * cantidad if producto_info['categoria'] == 'bebidas' else 0,
+        totalotrossindescuentos=producto_info['preciosinimpuestos'] * cantidad if producto_info['categoria'] == 'otros' else 0,
         descuentocriterio=0,
-        subtotalcondescuento=producto_info['precio'] * cantidad,
-        totalimpuestod1=producto_info['precio'] * cantidad,
-        totalsindescuentoimp=producto_info['precio'] * cantidad,
+        subtotalcondescuento=producto_info['preciosinimpuestos'] * cantidad,
+        totalimpuestod1=producto_info['preciosinimpuestos'] * cantidad,
+        totalsindescuentoimp=0.00,
     )
 
     movimientos = Cheqdet.objects.filter(foliodet=folio)
@@ -165,8 +185,8 @@ def ajuste_folio(request, folio: int):
         idproducto=producto_info['id'],
         descuento=0,
         precio=producto_info['precio'],
-        impuesto1=0,
-        preciosinimpuestos=producto_info['precio'],
+        impuesto1= producto_info['impuesto'],
+        preciosinimpuestos=producto_info['preciosinimpuestos'],
         comentario="",
         usuariodescuento="",
         comentariodescuento="",
@@ -182,7 +202,7 @@ def ajuste_folio(request, folio: int):
     )
 
     return Response(
-        {"Mensaje": "Venta ajustada correctamente"}, status=status.HTTP_200_OK
+        {"Mensaje": f"Folio: {folio} ajustado por: {producto_info['id']} - ${producto_info['precio'] * cantidad} - #{cantidad}"}, status=status.HTTP_200_OK
     )
 
 
@@ -194,3 +214,23 @@ def listar_tempcheques(request):
     tempcheques = Tempcheques.objects.filter(fecha__date=fecha)
     serializer = TempchequesSerializer(tempcheques, many=True)
     return Response(serializer.data)
+
+# Ver todos los grupos
+@api_view(["GET"])
+def listar_grupos(request):
+    grupos = Grupos.objects.all()
+    serializer = GruposSerializer(grupos, many=True)
+    return Response(serializer.data)
+
+# Buscar producto por ID
+@api_view(["GET"])
+def buscar_producto(request, idproducto: str):
+    producto = Productos.objects.filter(idproducto=idproducto).first()
+    idgrupo = producto.idgrupo if producto else None
+    if not producto:
+        return Response({"error": "Producto no encontrado"}, status=status.HTTP_404_NOT_FOUND)
+    return Response({
+        "idproducto": producto.idproducto,
+        "descripcion": producto.descripcion,
+        "grupo": idgrupo.descripcion,
+    })
