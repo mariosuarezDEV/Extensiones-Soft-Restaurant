@@ -19,8 +19,10 @@ Estas instrucciones aplican a todo el repositorio.
 - `soft_manager/mant_express.py` ejecuta operaciones de mantenimiento.
 - `soft_manager/docker-compose.yml` levanta un backend por sucursal
   (`backend-centro`, `backend-araucarias`, `backend-anahuac`, misma imagen de
-  `Dockerfile`), el `frontend` (`Dockerfile.frontend`) y `mongo`. Las variables
-  van en `soft_manager/.env` (no versionado; plantilla en `.env.example`).
+  `Dockerfile`), el `frontend` (`Dockerfile.frontend`), `mongo`, `redis` (broker
+  de Celery, sin puerto publicado) y `celery-worker` (misma imagen del frontend,
+  ejecuta los mantenimientos). Las variables van en `soft_manager/.env` (no
+  versionado; plantilla en `.env.example`).
 - `soft_manager/openssl_legacy.cnf` habilita TLS antiguo (SECLEVEL=0) para SQL
   Server; el `Dockerfile` lo activa con `OPENSSL_CONF`.
 - Consulta `README.md` para instalar herramientas y configurar las conexiones.
@@ -49,7 +51,13 @@ uv run flask --app main.py routes
 uv run flask --app main.py run
 ```
 
-Django y Flask se ejecutan en terminales separadas y comparten `.venv`.
+Django y Flask se ejecutan en terminales separadas y comparten `.venv`. Los
+mantenimientos (`POST /mantenimiento`) requieren además Redis local y un worker
+de Celery, desde `soft_manager/frontend/`:
+
+```console
+uv run celery -A tareas worker --pool=threads --loglevel=info
+```
 
 Con Docker, desde `soft_manager/` (requiere Tailscale activo en el equipo y un
 `.env` copiado de `.env.example`):

@@ -141,7 +141,7 @@ y [ejecución de Flask](https://flask.palletsprojects.com/en/stable/quickstart/#
 ## Docker Compose (una sucursal por backend)
 
 `soft_manager/docker-compose.yml` ejecuta un backend por sucursal (centro,
-araucarias, anahuac) y el frontend. El selector de sucursal del frontend elige
+araucarias, anahuac), el frontend, MongoDB, Redis y un worker de Celery. El selector de sucursal del frontend elige
 el backend; no hay que cambiar IPs. Los backends usan `openssl_legacy.cnf`
 para conectarse a SQL Server. Tailscale debe estar activo en el equipo que
 ejecuta Docker.
