@@ -1,124 +1,204 @@
 {% extends "base.html" %}
 
+{% block titulo %}Ajuste de ventas · Soft Manager{% endblock titulo %}
+
 {% block contenido %}
-<div class="row">
-    <div class="col-12">
-        <h1 class="fs-2 fw-bold mb-4">
-            Ajuste de ventas
-        </h1>
-        <form id="form-mantenimiento" method="POST" class="needs-validation" action="/mantenimiento">
-            
-            <!-- Fecha inicio -->
-            <div class="mb-3">
-                <label for="fecha_inicio" class="form-label">Fecha Inicio</label>
-                <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio" required>
-            </div>
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-9 col-xl-8">
 
-            <!-- Fecha fin -->
-            <div class="mb-3">
-                <label for="fecha_fin" class="form-label">Fecha Fin</label>
-                <input type="date" class="form-control" id="fecha_fin" name="fecha_fin" required>
-            </div>
+        <div class="mb-4">
+            <h1 class="h3 fw-semibold mb-1">Ajuste de ventas</h1>
+            <p class="text-body-secondary mb-0">
+                Respalda y ajusta las ventas de un rango de fechas. El proceso corre en
+                segundo plano: puedes seguir usando el sistema y verás aquí el resultado.
+            </p>
+        </div>
 
-            <!-- Sucursales -->
-            <div class="mb-3">
-                <label class="form-label d-block">Sucursales</label>
-                {% for clave, nombre in [("centro", "Centro"), ("araucarias", "Araucarias"), ("anahuac", "Anahuac"), ("desarrollo", "Desarrollo")] %}
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="checkbox" id="suc_{{ clave }}" name="sucursal" value="{{ clave }}">
-                    <label class="form-check-label" for="suc_{{ clave }}">{{ nombre }}</label>
-                </div>
-                {% endfor %}
-            </div>
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <div class="alert alert-danger d-none" id="alerta" role="alert"></div>
+                <form id="form-mantenimiento" method="POST" action="/mantenimiento" novalidate>
+                    <div class="row g-3 mb-4">
+                        <div class="col-12 col-md-6">
+                            <label for="fecha_inicio" class="form-label fw-medium">Fecha de inicio</label>
+                            <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio" required>
+                            <div class="invalid-feedback">Indica la fecha de inicio.</div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label for="fecha_fin" class="form-label fw-medium">Fecha de fin</label>
+                            <input type="date" class="form-control" id="fecha_fin" name="fecha_fin" required>
+                            <div class="invalid-feedback" id="fecha_fin_error">Indica la fecha de fin.</div>
+                        </div>
+                    </div>
 
-            <!-- Enviar -->
-            <div class="d-grid gap-2">
-                <button type="submit" id="btn-ejecutar" class="btn btn-primary">Ejecutar en segundo plano</button>
+                    <fieldset class="mb-4">
+                        <legend class="form-label fw-medium fs-6">Sucursales</legend>
+                        <div class="d-flex flex-wrap gap-2" id="sucursales">
+                            {% for clave, nombre in [("centro", "Centro"), ("araucarias", "Araucarias"), ("anahuac", "Anahuac"), ("desarrollo", "Desarrollo")] %}
+                            <input type="checkbox" class="btn-check" id="suc_{{ clave }}" name="sucursal" value="{{ clave }}" autocomplete="off">
+                            <label class="btn btn-outline-primary" for="suc_{{ clave }}">{{ nombre }}</label>
+                            {% endfor %}
+                        </div>
+                        <div class="form-text">Puedes seleccionar una o varias; cada sucursal se procesa por separado.</div>
+                        <div class="text-danger small mt-1 d-none" id="sucursales_error" role="alert">Selecciona al menos una sucursal.</div>
+                    </fieldset>
+
+                    <div class="d-grid d-sm-flex justify-content-sm-end">
+                        <button type="submit" id="btn-ejecutar" class="btn btn-primary px-4">
+                            <span class="spinner-border spinner-border-sm me-2 d-none" id="spinner-enviar" aria-hidden="true"></span>
+                            Ejecutar ajuste
+                        </button>
+                    </div>
+                </form>
             </div>
-        </form>
-        <div id="tareas" class="mt-4"></div>
+        </div>
+
+        <div class="card shadow-sm mt-4 d-none" id="panel-tareas">
+            <div class="card-header bg-body fw-semibold">Mantenimientos</div>
+            <ul class="list-group list-group-flush" id="tareas" aria-live="polite"></ul>
+        </div>
+
     </div>
 </div>
+{% endblock contenido %}
 
+{% block scripts %}
 <script>
 const CLAVE = "mantenimientos_pendientes";
-const contenedor = document.getElementById("tareas");
+const lista = document.getElementById("tareas");
+const panel = document.getElementById("panel-tareas");
+const form = document.getElementById("form-mantenimiento");
+const inicio = document.getElementById("fecha_inicio");
+const fin = document.getElementById("fecha_fin");
+const errorSucursales = document.getElementById("sucursales_error");
 const intervalos = {};
 
 function leer() {
     try { return JSON.parse(localStorage.getItem(CLAVE) || "[]"); } catch (e) { return []; }
 }
-function guardar(lista) {
-    try { localStorage.setItem(CLAVE, JSON.stringify(lista)); } catch (e) {}
+function guardar(tareas) {
+    try { localStorage.setItem(CLAVE, JSON.stringify(tareas)); } catch (e) {}
 }
 function quitar(id) { guardar(leer().filter(t => t.id !== id)); }
 
-function tarjeta(t) {
-    const div = document.createElement("div");
-    div.className = "alert alert-secondary";
-    div.id = "tarea-" + t.id;
-    div.innerHTML = '<strong class="text-capitalize"></strong> <span class="msg">En cola...</span>' +
-        '<div class="progress mt-2"><div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 0%"></div></div>';
-    div.querySelector("strong").textContent = t.sucursal;
-    contenedor.appendChild(div);
-    return div;
+function crearItem(t) {
+    const li = document.createElement("li");
+    li.className = "list-group-item py-3";
+    li.id = "tarea-" + t.id;
+    li.innerHTML =
+        '<div class="d-flex justify-content-between align-items-center gap-2">' +
+            '<span class="fw-medium text-capitalize nombre"></span>' +
+            '<span class="badge text-bg-secondary estado">En cola</span>' +
+        '</div>' +
+        '<div class="small text-body-secondary mt-1 detalle">Esperando turno...</div>' +
+        '<div class="progress mt-2" role="progressbar" aria-label="Progreso" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="height: .5rem">' +
+            '<div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 0%"></div>' +
+        '</div>';
+    li.querySelector(".nombre").textContent = t.sucursal;
+    lista.appendChild(li);
+    panel.classList.remove("d-none");
+    return li;
 }
 
 function seguir(t) {
-    const div = document.getElementById("tarea-" + t.id) || tarjeta(t);
-    const msg = div.querySelector(".msg");
-    const barra = div.querySelector(".progress-bar");
-    const final = (clase, texto) => {
+    const li = document.getElementById("tarea-" + t.id) || crearItem(t);
+    const estado = li.querySelector(".estado");
+    const detalle = li.querySelector(".detalle");
+    const progreso = li.querySelector(".progress");
+    const barra = li.querySelector(".progress-bar");
+
+    const terminar = (clase, etiqueta, texto) => {
         clearInterval(intervalos[t.id]);
-        div.className = "alert alert-" + clase;
-        div.querySelector(".progress").remove();
-        msg.textContent = texto;
+        estado.className = "badge estado text-bg-" + clase;
+        estado.textContent = etiqueta;
+        detalle.className = "small mt-1 detalle text-" + (clase === "danger" ? "danger" : "body-secondary");
+        detalle.textContent = texto;
+        progreso.remove();
         quitar(t.id);
     };
+
     const consultar = async () => {
         try {
             const r = await fetch("/mantenimiento/estado/" + t.id);
             const d = await r.json();
-            if (d.estado === "PROGRESS") {
+            if (d.estado === "STARTED") {
+                estado.className = "badge estado text-bg-primary";
+                estado.textContent = "Iniciando";
+            } else if (d.estado === "PROGRESS") {
                 const p = d.progreso;
-                barra.style.width = Math.round(100 * p.actual / p.total) + "%";
-                msg.textContent = "Procesando " + p.dia + " (" + p.actual + "/" + p.total + "), ventas: " + p.total_ventas;
-            } else if (d.estado === "STARTED") {
-                msg.textContent = "Iniciando...";
+                const pct = Math.round(100 * p.actual / p.total);
+                estado.className = "badge estado text-bg-primary";
+                estado.textContent = "En proceso";
+                detalle.textContent = "Día " + p.dia + " (" + p.actual + " de " + p.total + ") · " + p.total_ventas + " ventas";
+                barra.style.width = pct + "%";
+                progreso.setAttribute("aria-valuenow", pct);
             } else if (d.estado === "SUCCESS") {
-                const enviados = d.resultado.historial.filter(h => h.enviado).length;
-                final("success", "Mantenimiento completado: " + d.resultado.total_ventas +
-                    " ventas, historial enviado " + enviados + "/" + d.resultado.historial.length + ".");
+                const h = d.resultado.historial;
+                const enviados = h.filter(x => x.enviado).length;
+                terminar("success", "Completado",
+                    d.resultado.total_ventas + " ventas procesadas · historial enviado " + enviados + " de " + h.length);
             } else if (d.estado === "FAILURE") {
-                final("danger", "Error: " + d.error);
+                terminar("danger", "Error", d.error);
             }
-        } catch (e) { /* red caida: reintenta en el siguiente ciclo */ }
+        } catch (e) { /* sin red: reintenta en el siguiente ciclo */ }
     };
     intervalos[t.id] = setInterval(consultar, 3000);
     consultar();
 }
 
-document.getElementById("form-mantenimiento").addEventListener("submit", async (ev) => {
-    ev.preventDefault();
-    const form = ev.target;
-    if (!form.querySelector('input[name="sucursal"]:checked')) {
-        alert("Seleccione al menos una sucursal");
-        return;
+function mostrarError(texto) {
+    const alerta = document.getElementById("alerta");
+    alerta.textContent = texto;
+    alerta.classList.remove("d-none");
+}
+
+function validar() {
+    let ok = true;
+    const mensaje = document.getElementById("fecha_fin_error");
+    inicio.classList.toggle("is-invalid", !inicio.value);
+    fin.classList.remove("is-invalid");
+    if (!fin.value) {
+        mensaje.textContent = "Indica la fecha de fin.";
+        fin.classList.add("is-invalid");
+    } else if (inicio.value && fin.value < inicio.value) {
+        mensaje.textContent = "La fecha de fin no puede ser anterior a la de inicio.";
+        fin.classList.add("is-invalid");
     }
+    const sinSucursal = !form.querySelector('input[name="sucursal"]:checked');
+    errorSucursales.classList.toggle("d-none", !sinSucursal);
+    ok = inicio.value && !fin.classList.contains("is-invalid") && !sinSucursal;
+    return Boolean(ok);
+}
+
+form.addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    document.getElementById("alerta").classList.add("d-none");
+    if (!validar()) return;
     const boton = document.getElementById("btn-ejecutar");
+    const spinner = document.getElementById("spinner-enviar");
     boton.disabled = true;
+    spinner.classList.remove("d-none");
     try {
         const r = await fetch("/mantenimiento", { method: "POST", body: new FormData(form) });
         const d = await r.json();
-        if (!r.ok) { alert(d.error || "No se pudo iniciar el mantenimiento"); return; }
+        if (!r.ok) { mostrarError(d.error || "No se pudo iniciar el mantenimiento."); return; }
         guardar(leer().concat(d.tareas));
         d.tareas.forEach(seguir);
+    } catch (e) {
+        mostrarError("No se pudo conectar con el servidor. Inténtalo de nuevo.");
     } finally {
         boton.disabled = false;
+        spinner.classList.add("d-none");
     }
 });
 
-// Retomar tareas si el usuario recargo la pagina
+form.addEventListener("change", () => {
+    if (form.querySelector('input[name="sucursal"]:checked')) errorSucursales.classList.add("d-none");
+    inicio.classList.remove("is-invalid");
+    fin.classList.remove("is-invalid");
+});
+
+// Retomar tareas si el usuario recargó la página
 leer().forEach(seguir);
 </script>
-{% endblock contenido %}
+{% endblock scripts %}

@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, render_template, request
+from flask import Flask, jsonify, redirect, render_template, request
 from datetime import datetime
 
 from servicio import SERVIDORES, db, req
@@ -9,7 +9,7 @@ app = Flask(__name__)
 
 @app.route("/")
 def home():
-    return render_template("index.html")
+    return redirect("/mantenimiento")
 
 
 @app.route("/mantenimiento", methods=["GET", "POST"])
