@@ -4,6 +4,22 @@ Resumen de los cambios recientes para que una IA entienda el estado actual del
 proyecto sin revisar todo el historial. Agrega las novedades al inicio.
 Complementa a `AGENTS.md`.
 
+## 2026-11-03 — Rediseño del frontend (rama `design`)
+
+### Qué hace
+El frontend queda con una sola sección, **Ajuste de ventas**, con diseño
+corporativo y responsive usando solo Bootstrap 5 (sin CSS propio).
+
+### Cambios
+- `templates/base.html`: navbar oscura con una sola opción, `main` con
+  contenedor, footer; bloques `titulo`, `contenido` y `scripts`; `lang="es"`.
+  Se quitaron el buscador y los menús sin funcionalidad.
+- `templates/mantenimiento.html`: fechas en dos columnas (una en móvil),
+  sucursales como botones seleccionables, validación en línea (fin >= inicio,
+  al menos una sucursal), alerta de error y lista de tareas con estado,
+  progreso y resultado (misma lógica de polling).
+- `templates/index.html` eliminado; `GET /` redirige a `/mantenimiento`.
+
 ## 2026-11-03 — Mantenimientos en segundo plano (rama `background`)
 
 ### Qué hace
