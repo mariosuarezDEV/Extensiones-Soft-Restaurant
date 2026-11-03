@@ -6,7 +6,7 @@
         <h1 class="fs-2 fw-bold mb-4">
             Ajuste de ventas
         </h1>
-        <form method="POST" class="needs-validation" action="/mantenimiento">
+        <form id="form-mantenimiento" method="POST" class="needs-validation" action="/mantenimiento">
             
             <!-- Fecha inicio -->
             <div class="mb-3">
@@ -20,23 +20,105 @@
                 <input type="date" class="form-control" id="fecha_fin" name="fecha_fin" required>
             </div>
 
-            <!-- Sucursal -->
+            <!-- Sucursales -->
             <div class="mb-3">
-                <label for="sucursal" class="form-label">Sucursal</label>
-                <select class="form-select" id="sucursal" name="sucursal" required>
-                    <option value="">Seleccione una sucursal</option>
-                    <option value="centro">Centro</option>
-                    <option value="araucarias">Araucarias</option>
-                    <option value="anahuac">Anahuac</option>
-                    <option value="desarrollo">Desarrollo</option>
-                </select>
+                <label class="form-label d-block">Sucursales</label>
+                {% for clave, nombre in [("centro", "Centro"), ("araucarias", "Araucarias"), ("anahuac", "Anahuac"), ("desarrollo", "Desarrollo")] %}
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="checkbox" id="suc_{{ clave }}" name="sucursal" value="{{ clave }}">
+                    <label class="form-check-label" for="suc_{{ clave }}">{{ nombre }}</label>
+                </div>
+                {% endfor %}
             </div>
 
             <!-- Enviar -->
             <div class="d-grid gap-2">
-                <button type="submit" class="btn btn-primary">Ejecutar ahora</button>
+                <button type="submit" id="btn-ejecutar" class="btn btn-primary">Ejecutar en segundo plano</button>
             </div>
         </form>
+        <div id="tareas" class="mt-4"></div>
     </div>
 </div>
+
+<script>
+const CLAVE = "mantenimientos_pendientes";
+const contenedor = document.getElementById("tareas");
+const intervalos = {};
+
+function leer() {
+    try { return JSON.parse(localStorage.getItem(CLAVE) || "[]"); } catch (e) { return []; }
+}
+function guardar(lista) {
+    try { localStorage.setItem(CLAVE, JSON.stringify(lista)); } catch (e) {}
+}
+function quitar(id) { guardar(leer().filter(t => t.id !== id)); }
+
+function tarjeta(t) {
+    const div = document.createElement("div");
+    div.className = "alert alert-secondary";
+    div.id = "tarea-" + t.id;
+    div.innerHTML = '<strong class="text-capitalize"></strong> <span class="msg">En cola...</span>' +
+        '<div class="progress mt-2"><div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 0%"></div></div>';
+    div.querySelector("strong").textContent = t.sucursal;
+    contenedor.appendChild(div);
+    return div;
+}
+
+function seguir(t) {
+    const div = document.getElementById("tarea-" + t.id) || tarjeta(t);
+    const msg = div.querySelector(".msg");
+    const barra = div.querySelector(".progress-bar");
+    const final = (clase, texto) => {
+        clearInterval(intervalos[t.id]);
+        div.className = "alert alert-" + clase;
+        div.querySelector(".progress").remove();
+        msg.textContent = texto;
+        quitar(t.id);
+    };
+    const consultar = async () => {
+        try {
+            const r = await fetch("/mantenimiento/estado/" + t.id);
+            const d = await r.json();
+            if (d.estado === "PROGRESS") {
+                const p = d.progreso;
+                barra.style.width = Math.round(100 * p.actual / p.total) + "%";
+                msg.textContent = "Procesando " + p.dia + " (" + p.actual + "/" + p.total + "), ventas: " + p.total_ventas;
+            } else if (d.estado === "STARTED") {
+                msg.textContent = "Iniciando...";
+            } else if (d.estado === "SUCCESS") {
+                const enviados = d.resultado.historial.filter(h => h.enviado).length;
+                final("success", "Mantenimiento completado: " + d.resultado.total_ventas +
+                    " ventas, historial enviado " + enviados + "/" + d.resultado.historial.length + ".");
+            } else if (d.estado === "FAILURE") {
+                final("danger", "Error: " + d.error);
+            }
+        } catch (e) { /* red caida: reintenta en el siguiente ciclo */ }
+    };
+    intervalos[t.id] = setInterval(consultar, 3000);
+    consultar();
+}
+
+document.getElementById("form-mantenimiento").addEventListener("submit", async (ev) => {
+    ev.preventDefault();
+    const form = ev.target;
+    if (!form.querySelector('input[name="sucursal"]:checked')) {
+        alert("Seleccione al menos una sucursal");
+        return;
+    }
+    const boton = document.getElementById("btn-ejecutar");
+    boton.disabled = true;
+    try {
+        const r = await fetch("/mantenimiento", { method: "POST", body: new FormData(form) });
+        const d = await r.json();
+        if (!r.ok) { alert(d.error || "No se pudo iniciar el mantenimiento"); return; }
+        guardar(leer().concat(d.tareas));
+        d.tareas.forEach(seguir);
+    } finally {
+        boton.disabled = false;
+    }
+});
+
+// Retomar tareas si el usuario recargo la pagina
+leer().forEach(seguir);
+</script>
 {% endblock contenido %}

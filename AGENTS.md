@@ -13,7 +13,9 @@ Estas instrucciones aplican a todo el repositorio.
   (Anahuac) y `prodsuc.py` (resto de sucursales), elegidos por la vista de
   ajuste según el query param `sucursal`.
 - `soft_manager/frontend/main.py` contiene la aplicación Flask y su integración
-  con Django y MongoDB. Sus plantillas están en `frontend/templates/`.
+  con Django y MongoDB. `frontend/tareas.py` (Celery + Redis) ejecuta
+  los mantenimientos en segundo plano y `frontend/servicio.py` guarda lo
+  compartido. Sus plantillas están en `frontend/templates/`.
 - `soft_manager/mant_express.py` ejecuta operaciones de mantenimiento.
 - `soft_manager/docker-compose.yml` levanta un backend por sucursal
   (`backend-centro`, `backend-araucarias`, `backend-anahuac`, misma imagen de
@@ -73,7 +75,7 @@ Agrega dependencias con `uv add` desde `soft_manager/` y versiona tanto
   `HISTORIAL_API_URL` (`frontend/main.py` la carga de `frontend/.env`, no
   versionado) y las variables de entorno que lee el código y define
   `docker-compose.yml`: `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`,
-  `DB_PASSWORD` (backend), `BACKEND_<SUCURSAL>` y `MONGO_URI` (frontend). Sus
+  `DB_PASSWORD` (backend), `BACKEND_<SUCURSAL>`, `MONGO_URI` y `REDIS_URL` (frontend/worker). Sus
   defaults conservan el comportamiento sin Docker; `.env.example` solo lleva
   placeholders.
 - En Docker, el frontend elige el backend por sucursal con `SERVIDORES`

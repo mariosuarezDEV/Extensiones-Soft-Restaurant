@@ -1,73 +1,10 @@
 from flask import Flask, jsonify, render_template, request
-import pymongo
-import requests as req
-import os
-from datetime import date, datetime, timedelta
-from pathlib import Path
-import pandas as pd
-from dotenv import load_dotenv
+from datetime import datetime
 
-# .env en la raiz del frontend (independiente del directorio de ejecucion)
-load_dotenv(Path(__file__).parent / ".env")
+from servicio import SERVIDORES, db, req
+from tareas import celery_app, ejecutar_mantenimiento
 
 app = Flask(__name__)
-
-cliente = pymongo.MongoClient(
-    os.environ.get("MONGO_URI", "mongodb://localhost:27017/")
-)
-db = cliente.mongoffice
-
-SERVIDORES = {
-    # En Docker Compose cada variable apunta al servicio de esa sucursal
-    "centro": os.environ.get("BACKEND_CENTRO", "localhost"),
-    "araucarias": os.environ.get("BACKEND_ARAUCARIAS", "localhost"),
-    "anahuac": os.environ.get("BACKEND_ANAHUAC", "localhost"),
-    "desarrollo": os.environ.get("BACKEND_DESARROLLO", "localhost"),
-}
-
-# IDs de sucursal en la API de historial ("desarrollo" no se reporta)
-ID_SUCURSAL = {"centro": 1, "araucarias": 2, "anahuac": 3}
-
-def _normalizar_url(valor):
-    """Quita comillas/espacios/slash final y agrega http:// si falta el esquema."""
-    valor = valor.strip().strip("'\"").rstrip("/")
-    if valor and "://" not in valor:
-        valor = f"http://{valor}"
-    return valor
-
-
-HISTORIAL_API_URL = _normalizar_url(os.environ.get("HISTORIAL_API_URL", ""))
-
-
-def registrar_historial(sucursal, fecha_mantenimiento):
-    """Envia el registro del mantenimiento a la API de historial.
-
-    Nunca lanza excepciones: devuelve un dict con el resultado.
-    """
-    id_sucursal = ID_SUCURSAL.get(sucursal)
-    if id_sucursal is None:
-        return {"enviado": False, "motivo": "sucursal sin id en la API"}
-    if not HISTORIAL_API_URL:
-        return {"enviado": False, "motivo": "HISTORIAL_API_URL no configurada"}
-
-    payload = {
-        "id_sucursal": id_sucursal,
-        "fecha_aplicacion": date.today().isoformat(),
-        "fecha_mantenimiento": fecha_mantenimiento.isoformat(),
-    }
-    try:
-        resp = req.post(
-            f"{HISTORIAL_API_URL}/historial_mantenimientos", json=payload, timeout=10
-        )
-        if resp.ok:
-            return {"enviado": True, "payload": payload}
-        return {
-            "enviado": False,
-            "motivo": f"HTTP {resp.status_code}",
-            "payload": payload,
-        }
-    except req.RequestException as e:
-        return {"enviado": False, "motivo": str(e), "payload": payload}
 
 
 @app.route("/")
@@ -79,101 +16,44 @@ def home():
 def mantenimiento():
     if request.method == "GET":
         return render_template("mantenimiento.html")
-    if request.method == "POST":
-        # Datos del formulario
-        fecha_inicio = request.form.get("fecha_inicio")
-        fecha_fin = request.form.get("fecha_fin")
-        sucursal = request.form.get("sucursal")
 
-        ip_server = SERVIDORES.get(sucursal)
-        API_URL = f"http://{ip_server}:8000"
+    # Datos del formulario (una o varias sucursales)
+    fecha_inicio = request.form.get("fecha_inicio")
+    fecha_fin = request.form.get("fecha_fin")
+    sucursales = request.form.getlist("sucursal")
 
-        # Nombre del mes actual
-        mes_actual = datetime.now().strftime("%m")
-        # Nombre de la coleccion
-        colecion = f"{mes_actual}_{sucursal}"
+    try:
+        inicio = datetime.strptime(fecha_inicio or "", "%Y-%m-%d").date()
+        fin = datetime.strptime(fecha_fin or "", "%Y-%m-%d").date()
+    except ValueError:
+        return jsonify({"error": "Fechas invalidas (use AAAA-MM-DD)"}), 400
+    if fin < inicio:
+        return jsonify({"error": "La fecha fin es anterior a la fecha inicio"}), 400
+    if not sucursales or any(s not in SERVIDORES for s in sucursales):
+        return jsonify({"error": "Seleccione una o mas sucursales validas"}), 400
 
-        # Obtener todas las fechas entre fecha_inicio y fecha_fin
-        fechas = []
-        inicio = datetime.strptime(fecha_inicio, "%Y-%m-%d").date()
-        fin = datetime.strptime(fecha_fin, "%Y-%m-%d").date()
-        delta = fin - inicio
-        for i in range(delta.days + 1):
-            dia = inicio + timedelta(days=i)
-            print(dia)
-            fechas.append(dia)
+    # Un trabajo independiente por sucursal; la peticion responde de inmediato
+    tareas = []
+    for sucursal in dict.fromkeys(sucursales):
+        tarea = ejecutar_mantenimiento.delay(
+            sucursal, inicio.isoformat(), fin.isoformat()
+        )
+        tareas.append({"sucursal": sucursal, "id": tarea.id})
+    return jsonify({"tareas": tareas}), 202
 
-        # Obtener ventas por cada fecha
-        total_ventas = 0
-        for fecha in fechas:
-            ventas = req.get(f"{API_URL}/ventas?fecha={fecha}")
-            ventas = ventas.json()
-            if ventas == []:
-                print(f"No hay ventas para {fecha}; se omite este dia.")
-                continue
-            total_ventas += len(ventas)
-            # Pasar a un dataframe
-            ventas_df = pd.DataFrame(ventas)
-            print(ventas_df.head())
-            # Convertir los tipos de datos
-            ventas_df["efectivo"] = ventas_df["efectivo"].astype(float)
-            ventas_df["tarjeta"] = ventas_df["tarjeta"].astype(float)
-            ventas_df["otros"] = ventas_df["otros"].astype(float)
-            ventas_df["facturado"] = ventas_df["facturado"].astype(str)
-            # Obtener solo lo que efectivo > 130 - tarjeta = 0, otros= 0 y mesa nombre diferente a ""
-            ventas_filtradas = ventas_df[
-                (ventas_df["efectivo"] > 130)  # El cafe vale $129
-                & (ventas_df["tarjeta"] == 0)
-                & (ventas_df["otros"] == 0)
-                & (ventas_df["mesa"] != "")  # Delivery
-                & (ventas_df["facturado"] == "False")  # No facturado
-            ]
-            # Guardar el dataframe filtrado en un archivo csv
-            ventas_filtradas.to_csv(f"ventas_filtradas_{fecha}.csv", index=False)
 
-            # Obtener el detalle de cada venta
-            for venta in ventas:
-                # Obtener folio de la venta
-                folio = venta["folio"]
-                # Obtener informacion del folio
-                venta_detalle = req.get(f"{API_URL}/ventas/{folio}")
-                venta_detalle = venta_detalle.json()
-                try:
-                    # Insertar en la coleccion correspondiente
-                    db[colecion].insert_one(venta_detalle)
-                    # TODO Traer el enpoint para aplicar mantenimiento a la venta
-                    # Validar si el folio actual este en el dataframe filtrado
-                    if folio in ventas_filtradas["folio"].values:
-                        # Aplicar mantenimiento a la venta
-                        ajuste = req.post(
-                            f"{API_URL}/ventas/ajuste/{folio}",
-                            params={"sucursal": sucursal},
-                        )
-                        if ajuste.status_code == 200:
-                            print(f"Venta con folio {folio} ajustada")
-                        else:
-                            print(f"Error al ajustar la venta con folio {folio}")
-                except Exception as e:
-                    print(f"Error al guardar la venta con folio {folio}: {e}")
-
-        # Registrar en el historial cada fecha del rango
-        historial = []
-        for fecha in fechas:
-            resultado = registrar_historial(sucursal, fecha)
-            historial.append({"fecha": fecha.isoformat(), **resultado})
-            # Si no se puede enviar por configuracion, no repetir el mismo error
-            if not resultado["enviado"] and "payload" not in resultado:
-                break
-
-        return jsonify(
-            {
-                "inicio": fecha_inicio,
-                "fin": fecha_fin,
-                "sucursal": sucursal,
-                "total_ventas": total_ventas,
-                "historial": historial,
-            }
-        ), 200
+@app.route("/mantenimiento/estado/<id_tarea>", methods=["GET"])
+def estado_mantenimiento(id_tarea):
+    tarea = celery_app.AsyncResult(id_tarea)
+    estado = tarea.state
+    respuesta = {"estado": estado}
+    if estado == "PROGRESS":
+        respuesta["progreso"] = tarea.info
+    elif estado == "SUCCESS":
+        respuesta["resultado"] = tarea.result
+    elif estado == "FAILURE":
+        respuesta["error"] = str(tarea.result)
+    return jsonify(respuesta), 200
 
 
 @app.route("/stats", methods=["GET"])

@@ -47,6 +47,44 @@ services:
       timeout: 5s
       retries: 5
 
+  # Broker/resultados de Celery (solo red interna)
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Ejecuta los mantenimientos en segundo plano (hilos: comparte MongoClient)
+  celery-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    restart: unless-stopped
+    command:
+      ["uv", "run", "--no-sync", "celery", "-A", "tareas", "worker",
+       "--pool=threads", "--concurrency=3", "--loglevel=info"]
+    environment:
+      BACKEND_CENTRO: backend-centro
+      BACKEND_ARAUCARIAS: backend-araucarias
+      BACKEND_ANAHUAC: backend-anahuac
+      MONGO_URI: ${MONGO_URI:-mongodb://mongo:27017/}
+      HISTORIAL_API_URL: ${HISTORIAL_API_URL:-}
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      redis:
+        condition: service_healthy
+      mongo:
+        condition: service_healthy
+      backend-centro:
+        condition: service_started
+      backend-araucarias:
+        condition: service_started
+      backend-anahuac:
+        condition: service_started
+
   frontend:
     build:
       context: .
@@ -60,7 +98,10 @@ services:
       BACKEND_ANAHUAC: backend-anahuac
       MONGO_URI: ${MONGO_URI:-mongodb://mongo:27017/}
       HISTORIAL_API_URL: ${HISTORIAL_API_URL:-}
+      REDIS_URL: redis://redis:6379/0
     depends_on:
+      redis:
+        condition: service_healthy
       mongo:
         condition: service_healthy
       backend-centro:

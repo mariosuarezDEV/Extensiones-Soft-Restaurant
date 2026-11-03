@@ -160,6 +160,12 @@ interfaces): conéctate con `mongodb://<IP-del-equipo>:27018`. Cualquiera que
 alcance ese puerto puede leer y borrar los respaldos; limita el acceso con el
 firewall o la red (p. ej. solo Tailscale).
 
+Los mantenimientos corren en segundo plano: el contenedor `celery-worker`
+ejecuta las tareas y `redis` (solo red interna) guarda su cola y resultado. Sin
+Docker necesitas un Redis local (`REDIS_URL`, por defecto
+`redis://localhost:6379/0`) y, desde `soft_manager/frontend`,
+`uv run celery -A tareas worker --pool=threads --loglevel=info`.
+
 Para llevar respaldos de un Mongo anterior: `mongodump --archive` en el equipo
 anterior y `docker compose exec -T mongo mongorestore --archive < respaldo`.
 

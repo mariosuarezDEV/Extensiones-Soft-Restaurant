@@ -4,6 +4,35 @@ Resumen de los cambios recientes para que una IA entienda el estado actual del
 proyecto sin revisar todo el historial. Agrega las novedades al inicio.
 Complementa a `AGENTS.md`.
 
+## 2026-11-03 — Mantenimientos en segundo plano (rama `background`)
+
+### Qué hace
+`POST /mantenimiento` ya no procesa nada en la petición (evita el error 524
+del proxy): encola una tarea de Celery por sucursal y responde `202` con
+`{"tareas": [{"sucursal", "id"}]}`. La vista `mantenimiento.html` consulta
+`GET /mantenimiento/estado/<id>` cada 3 s, muestra una barra de progreso por
+sucursal y avisa al terminar (o si falla). Los ids se guardan en
+`localStorage` para retomar el seguimiento tras recargar la página. Ahora se
+pueden marcar una o varias sucursales (checkboxes).
+
+### Cambios
+- `frontend/servicio.py` (nuevo): Mongo, `SERVIDORES`, `ID_SUCURSAL`,
+  `registrar_historial`, compartidos por Flask y Celery.
+- `frontend/tareas.py` (nuevo): `procesar_mantenimiento()` (la lógica que antes
+  estaba en la vista) y la tarea `ejecutar_mantenimiento`, con estado
+  `PROGRESS` por día. Broker y resultados en Redis (`REDIS_URL`).
+- `frontend/main.py`: rutas `POST /mantenimiento` (202) y
+  `GET /mantenimiento/estado/<id>`; valida fechas y sucursales (400).
+- `docker-compose.yml`: servicios `redis` (interno) y `celery-worker`
+  (`--pool=threads --concurrency=3`); `frontend` recibe `REDIS_URL`.
+- Dependencias nuevas: `celery`, `redis` (`pyproject.toml`, `uv.lock`).
+- `frontend/test_mantenimiento.py`: prueba la lógica y las rutas nuevas con
+  mocks (sin Redis ni Mongo reales).
+
+### Uso sin Docker
+Redis local y, desde `soft_manager/frontend/`:
+`uv run celery -A tareas worker --pool=threads --loglevel=info` junto a Flask.
+
 ## 2026-10-28 — Un backend por sucursal con Docker Compose
 
 ### Qué hace
