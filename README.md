@@ -117,6 +117,14 @@ uv run flask --app main.py run
 Abre [http://127.0.0.1:5000](http://127.0.0.1:5000). Mantén Django ejecutándose
 para las funciones que llaman a la API. Detén cada servidor con `Ctrl+C`.
 
+Si ejecutas `uv run python main.py` (en lugar de `flask run`), el puerto sale de
+`FRONTEND_PORT` en `frontend/.env` (no versionado; por defecto `6001`) y se
+carga con `python-dotenv`.
+
+En "Ajuste de ventas", el botón **Ejecutar ajuste** se deshabilita mientras haya
+mantenimientos en curso y se habilita cuando terminan todas las sucursales
+(éxito o error). El bloqueo es por navegador, no global entre equipos.
+
 `uv run` utiliza el entorno del proyecto sin activarlo manualmente. Si prefieres
 usar los comandos directamente, activa el entorno en cada terminal desde
 `soft_manager`:

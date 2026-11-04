@@ -43,7 +43,8 @@
                         <div class="text-danger small mt-1 d-none" id="sucursales_error" role="alert">Selecciona al menos una sucursal.</div>
                     </fieldset>
 
-                    <div class="d-grid d-sm-flex justify-content-sm-end">
+                    <div class="d-grid d-sm-flex justify-content-sm-end align-items-center gap-3">
+                        <span class="small text-body-secondary d-none" id="aviso-bloqueo">Hay mantenimientos en curso; espera a que terminen.</span>
                         <button type="submit" id="btn-ejecutar" class="btn btn-primary px-4">
                             <span class="spinner-border spinner-border-sm me-2 d-none" id="spinner-enviar" aria-hidden="true"></span>
                             Ejecutar ajuste
@@ -79,7 +80,14 @@ function leer() {
 function guardar(tareas) {
     try { localStorage.setItem(CLAVE, JSON.stringify(tareas)); } catch (e) {}
 }
-function quitar(id) { guardar(leer().filter(t => t.id !== id)); }
+function quitar(id) { guardar(leer().filter(t => t.id !== id)); actualizarBoton(); }
+
+// Bloquea "Ejecutar ajuste" mientras haya mantenimientos sin terminar
+function actualizarBoton() {
+    const ocupado = leer().length > 0;
+    document.getElementById("btn-ejecutar").disabled = ocupado;
+    document.getElementById("aviso-bloqueo").classList.toggle("d-none", !ocupado);
+}
 
 function crearItem(t) {
     const li = document.createElement("li");
@@ -173,6 +181,7 @@ function validar() {
 form.addEventListener("submit", async (ev) => {
     ev.preventDefault();
     document.getElementById("alerta").classList.add("d-none");
+    if (leer().length > 0) { actualizarBoton(); return; }
     if (!validar()) return;
     const boton = document.getElementById("btn-ejecutar");
     const spinner = document.getElementById("spinner-enviar");
@@ -187,8 +196,8 @@ form.addEventListener("submit", async (ev) => {
     } catch (e) {
         mostrarError("No se pudo conectar con el servidor. Inténtalo de nuevo.");
     } finally {
-        boton.disabled = false;
         spinner.classList.add("d-none");
+        actualizarBoton();
     }
 });
 
@@ -200,5 +209,6 @@ form.addEventListener("change", () => {
 
 // Retomar tareas si el usuario recargó la página
 leer().forEach(seguir);
+actualizarBoton();
 </script>
 {% endblock scripts %}

@@ -4,6 +4,21 @@ Resumen de los cambios recientes para que una IA entienda el estado actual del
 proyecto sin revisar todo el historial. Agrega las novedades al inicio.
 Complementa a `AGENTS.md`.
 
+## 2026-11-04 — Bloqueo de "Ejecutar ajuste" durante mantenimientos (rama `antitontos`)
+
+### Qué hace
+El botón "Ejecutar ajuste" queda deshabilitado (con aviso) mientras haya
+mantenimientos sin terminar, y se habilita cuando la última sucursal acaba
+(éxito o error).
+
+### Cambios
+- `frontend/main.py`: carga `.env` con `load_dotenv()` y `python main.py` usa el puerto `FRONTEND_PORT` (por defecto 6001).
+- `README.md`: documenta el bloqueo y `FRONTEND_PORT`.
+- `templates/mantenimiento.html`: `actualizarBoton()` según las tareas en
+  `localStorage` (`mantenimientos_pendientes`); se invoca al enviar, en
+  `quitar()` y al recargar. El submit también se ignora si hay tareas pendientes.
+- Limitación: el bloqueo es por navegador, no global entre equipos.
+
 ## 2026-11-03 — Rediseño del frontend (rama `design`)
 
 ### Qué hace
