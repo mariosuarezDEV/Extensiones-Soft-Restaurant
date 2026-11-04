@@ -3,6 +3,10 @@ from datetime import datetime
 
 from servicio import SERVIDORES, db, req
 from tareas import celery_app, ejecutar_mantenimiento
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 app = Flask(__name__)
 
@@ -77,4 +81,4 @@ def guardar_venta(folio):
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=int(os.getenv("FRONTEND_PORT", 6001)), debug=True)
