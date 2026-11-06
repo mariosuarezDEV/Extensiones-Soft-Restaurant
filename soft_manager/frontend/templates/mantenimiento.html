@@ -101,7 +101,11 @@ function crearItem(t) {
         '<div class="small text-body-secondary mt-1 detalle">Esperando turno...</div>' +
         '<div class="progress mt-2" role="progressbar" aria-label="Progreso" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" style="height: .5rem">' +
             '<div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 0%"></div>' +
-        '</div>';
+        '</div>' +
+        '<details class="mt-2 d-none log">' +
+            '<summary class="small text-body-secondary">Folios ajustados (<span class="cuenta">0</span>)</summary>' +
+            '<ul class="list-unstyled small font-monospace mb-0 mt-1 overflow-auto" style="max-height: 10rem"></ul>' +
+        '</details>';
     li.querySelector(".nombre").textContent = t.sucursal;
     lista.appendChild(li);
     panel.classList.remove("d-none");
@@ -114,6 +118,20 @@ function seguir(t) {
     const detalle = li.querySelector(".detalle");
     const progreso = li.querySelector(".progress");
     const barra = li.querySelector(".progress-bar");
+
+    const log = li.querySelector(".log");
+    const mostrarLog = (folios) => {
+        if (!folios || !folios.length) return;
+        log.classList.remove("d-none");
+        log.querySelector(".cuenta").textContent = folios.length;
+        const ul = log.querySelector("ul");
+        ul.replaceChildren(...folios.map(f => {
+            const item = document.createElement("li");
+            if (!f.ok) item.className = "text-danger";
+            item.textContent = f.fecha + " · folio " + f.folio + (f.ok ? "" : " (error)");
+            return item;
+        }));
+    };
 
     const terminar = (clase, etiqueta, texto) => {
         clearInterval(intervalos[t.id]);
@@ -139,8 +157,10 @@ function seguir(t) {
                 estado.textContent = "En proceso";
                 detalle.textContent = "Día " + p.dia + " (" + p.actual + " de " + p.total + ") · " + p.total_ventas + " ventas";
                 barra.style.width = pct + "%";
+                mostrarLog(p.ajustados);
                 progreso.setAttribute("aria-valuenow", pct);
             } else if (d.estado === "SUCCESS") {
+                mostrarLog(d.resultado.ajustados);
                 const h = d.resultado.historial;
                 const enviados = h.filter(x => x.enviado).length;
                 terminar("success", "Completado",
