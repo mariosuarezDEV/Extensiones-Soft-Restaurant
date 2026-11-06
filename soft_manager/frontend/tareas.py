@@ -20,7 +20,7 @@ celery_app.conf.update(
 def procesar_mantenimiento(sucursal, fecha_inicio, fecha_fin, progreso=None):
     """Respalda y ajusta las ventas de una sucursal en un rango de fechas.
 
-    `progreso(actual, total, dia, total_ventas)` se llama al terminar cada dia.
+    `progreso(actual, total, dia, total_ventas, ajustados)` se llama al terminar cada dia.
     Devuelve el mismo resumen que antes entregaba la vista.
     """
     db = servicio.db
@@ -37,6 +37,7 @@ def procesar_mantenimiento(sucursal, fecha_inicio, fecha_fin, progreso=None):
 
     # Obtener ventas por cada fecha
     total_ventas = 0
+    ajustados = []  # log de folios ajustados (o con error)
     for indice, fecha in enumerate(fechas, start=1):
         ventas = req.get(f"{API_URL}/ventas?fecha={fecha}")
         ventas = ventas.json()
@@ -79,13 +80,15 @@ def procesar_mantenimiento(sucursal, fecha_inicio, fecha_fin, progreso=None):
                         )
                         if ajuste.status_code == 200:
                             print(f"Venta con folio {folio} ajustada")
+                            ajustados.append({"folio": folio, "fecha": fecha.isoformat(), "ok": True})
                         else:
                             print(f"Error al ajustar la venta con folio {folio}")
+                            ajustados.append({"folio": folio, "fecha": fecha.isoformat(), "ok": False})
                 except Exception as e:
                     print(f"Error al guardar la venta con folio {folio}: {e}")
 
         if progreso:
-            progreso(indice, len(fechas), fecha.isoformat(), total_ventas)
+            progreso(indice, len(fechas), fecha.isoformat(), total_ventas, ajustados)
 
     # Registrar en el historial cada fecha del rango
     historial = []
@@ -101,13 +104,14 @@ def procesar_mantenimiento(sucursal, fecha_inicio, fecha_fin, progreso=None):
         "fin": fecha_fin,
         "sucursal": sucursal,
         "total_ventas": total_ventas,
+        "ajustados": ajustados,
         "historial": historial,
     }
 
 
 @celery_app.task(bind=True, name="mantenimiento.ejecutar")
 def ejecutar_mantenimiento(self, sucursal, fecha_inicio, fecha_fin):
-    def progreso(actual, total, dia, total_ventas):
+    def progreso(actual, total, dia, total_ventas, ajustados):
         self.update_state(
             state="PROGRESS",
             meta={
@@ -115,6 +119,8 @@ def ejecutar_mantenimiento(self, sucursal, fecha_inicio, fecha_fin):
                 "total": total,
                 "dia": dia,
                 "total_ventas": total_ventas,
+                # solo los ultimos para no inflar el estado en Redis
+                "ajustados": ajustados[-200:],
             },
         )
 

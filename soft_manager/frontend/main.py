@@ -81,4 +81,4 @@ def guardar_venta(folio):
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.getenv("FRONTEND_PORT", 6001)), debug=True)
+    app.run(host="0.0.0.0", port=int(os.getenv("FRONTEND_PORT", "6001")), debug=True)

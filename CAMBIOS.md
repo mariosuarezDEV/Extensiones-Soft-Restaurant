@@ -4,6 +4,18 @@ Resumen de los cambios recientes para que una IA entienda el estado actual del
 proyecto sin revisar todo el historial. Agrega las novedades al inicio.
 Complementa a `AGENTS.md`.
 
+## 2026-11-06 — Log de folios ajustados (rama `logsviews`)
+
+### Qué hace
+Cada sucursal del panel "Mantenimientos" muestra un desplegable "Folios
+ajustados (N)" con fecha y folio (los errores en rojo). Solo en vivo: no se
+guarda en MongoDB, se pierde al recargar tras terminar.
+
+### Cambios
+- `frontend/tareas.py`: acumula `ajustados` y lo envía en el progreso (últimos
+  200) y completo en el resultado final.
+- `templates/mantenimiento.html`: `<details>` por tarea y `mostrarLog()`.
+
 ## 2026-11-04 — Bloqueo de "Ejecutar ajuste" durante mantenimientos (rama `antitontos`)
 
 ### Qué hace

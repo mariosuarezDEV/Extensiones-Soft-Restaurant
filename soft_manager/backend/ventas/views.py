@@ -1,30 +1,32 @@
+import random
+from datetime import date, datetime, timedelta
+
+from django.utils import timezone
+from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .serializers import (
-    ChequesSerializer,
-    CheqdetSerializer,
-    ChequespagosSerializer,
-    FoliosfacturadosSerializer,
-    FacturasSerializer,
-    TempchequesSerializer,
-    GruposSerializer
-)
+
+from . import prodsuc, scripts
 from .models import (
-    Cheques,
     Cheqdet,
+    Cheques,
     Chequespagos,
+    Facturas,
+    Foliosfacturados,
     Grupos,
     Productos,
     Productosdetalle,
-    Foliosfacturados,
-    Facturas,
     Tempcheques,
 )
-import random
-from datetime import timedelta, datetime, date
-from django.utils import timezone
-from rest_framework import status
-from . import prodsuc, scripts
+from .serializers import (
+    CheqdetSerializer,
+    ChequespagosSerializer,
+    ChequesSerializer,
+    FacturasSerializer,
+    FoliosfacturadosSerializer,
+    GruposSerializer,
+    TempchequesSerializer,
+)
 
 
 def fuente_productos(sucursal: str | None):
@@ -43,7 +45,10 @@ def listar_ventas(request):
     # Obtener fecha del query param
     fecha = request.query_params.get("fecha", None)
     if not fecha:
-        return Response({"error": "Fecha no proporcionada, prueba con: ?fecha=2026-12-31"}, status=400)
+        return Response(
+            {"error": "Fecha no proporcionada, prueba con: ?fecha=2026-12-31"},
+            status=400,
+        )
 
     # Obtener de la base de datos
     cheques = Cheques.objects.filter(fecha__date=fecha)
@@ -79,6 +84,7 @@ def auditoria(request, folio: int):
     }
 
     return Response(data)
+
 
 @api_view(["GET"])
 def detalle_venta(request, folio: int):
@@ -138,25 +144,32 @@ def ajuste_folio(request, folio: int):
         propinaincluida=0,
         propinamanual=0,
         totalarticulos=cantidad,
-        subtotal=producto_info['preciosinimpuestos'] * cantidad,
-        subtotalsinimpuestos= None, # En la BD es nullable, se puede dejar como None
-        total=producto_info['precio'] * cantidad,
-        totalconpropina=producto_info['precio'] * cantidad,
-        totalimpuesto1=(producto_info['precio'] * cantidad) - (producto_info['preciosinimpuestos'] * cantidad),
+        subtotal=producto_info["preciosinimpuestos"] * cantidad,
+        subtotalsinimpuestos=None,  # En la BD es nullable, se puede dejar como None
+        total=producto_info["precio"] * cantidad,
+        totalconpropina=producto_info["precio"] * cantidad,
+        totalimpuesto1=(producto_info["precio"] * cantidad)
+        - (producto_info["preciosinimpuestos"] * cantidad),
         cargo=0,
-        totalconcargo=producto_info['precio'] * cantidad,
-        totalconpropinacargo=producto_info['precio'] * cantidad,
+        totalconcargo=producto_info["precio"] * cantidad,
+        totalconpropinacargo=producto_info["precio"] * cantidad,
         descuentoimporte=0,
-        efectivo=producto_info['precio'] * cantidad,
+        efectivo=producto_info["precio"] * cantidad,
         tarjeta=0,
         vales=0,
         otros=0,
         propina=0,
         propinatarjeta=0,
-        totalsindescuento=producto_info['preciosinimpuestos'] * cantidad,
-        totalalimentos=producto_info['preciosinimpuestos'] * cantidad if producto_info['categoria'] == 'alimentos' else 0,
-        totalbebidas= producto_info['preciosinimpuestos'] * cantidad if producto_info['categoria'] == 'bebidas' else 0,
-        totalotros=producto_info['preciosinimpuestos'] * cantidad if producto_info['categoria'] == 'otros' else 0,
+        totalsindescuento=producto_info["preciosinimpuestos"] * cantidad,
+        totalalimentos=producto_info["preciosinimpuestos"] * cantidad
+        if producto_info["categoria"] == "alimentos"
+        else 0,
+        totalbebidas=producto_info["preciosinimpuestos"] * cantidad
+        if producto_info["categoria"] == "bebidas"
+        else 0,
+        totalotros=producto_info["preciosinimpuestos"] * cantidad
+        if producto_info["categoria"] == "otros"
+        else 0,
         totaldescuentos=0,
         totaldescuentoalimentos=0,
         totaldescuentobebidas=0,
@@ -166,12 +179,18 @@ def ajuste_folio(request, folio: int):
         totalcortesiabebidas=0,
         totalcortesiaotros=0,
         totaldescuentoycortesia=0,
-        totalalimentossindescuentos=producto_info['preciosinimpuestos'] * cantidad if producto_info['categoria'] == 'alimentos' else 0,
-        totalbebidassindescuentos= producto_info['preciosinimpuestos'] * cantidad if producto_info['categoria'] == 'bebidas' else 0,
-        totalotrossindescuentos=producto_info['preciosinimpuestos'] * cantidad if producto_info['categoria'] == 'otros' else 0,
+        totalalimentossindescuentos=producto_info["preciosinimpuestos"] * cantidad
+        if producto_info["categoria"] == "alimentos"
+        else 0,
+        totalbebidassindescuentos=producto_info["preciosinimpuestos"] * cantidad
+        if producto_info["categoria"] == "bebidas"
+        else 0,
+        totalotrossindescuentos=producto_info["preciosinimpuestos"] * cantidad
+        if producto_info["categoria"] == "otros"
+        else 0,
         descuentocriterio=0,
-        subtotalcondescuento=producto_info['preciosinimpuestos'] * cantidad,
-        totalimpuestod1=producto_info['preciosinimpuestos'] * cantidad,
+        subtotalcondescuento=producto_info["preciosinimpuestos"] * cantidad,
+        totalimpuestod1=producto_info["preciosinimpuestos"] * cantidad,
         totalsindescuentoimp=0.00,
     )
 
@@ -182,27 +201,30 @@ def ajuste_folio(request, folio: int):
     Cheqdet.objects.filter(foliodet=folio).update(
         movimiento=1,
         cantidad=cantidad,
-        idproducto=producto_info['id'],
+        idproducto=producto_info["id"],
         descuento=0,
-        precio=producto_info['precio'],
-        impuesto1= producto_info['impuesto'],
-        preciosinimpuestos=producto_info['preciosinimpuestos'],
+        precio=producto_info["precio"],
+        impuesto1=producto_info["impuesto"],
+        preciosinimpuestos=producto_info["preciosinimpuestos"],
         comentario="",
         usuariodescuento="",
         comentariodescuento="",
         idtipodescuento=0,
         idproductocompuesto="",
         productocompuestoprincipal=False,
-        preciocatalogo=producto_info['precio'],
+        preciocatalogo=producto_info["precio"],
         idcortesia="",
     )
 
     Chequespagos.objects.filter(folio=folio).update(
-        importe=producto_info['precio'] * cantidad, propina=0, tipodecambio=1
+        importe=producto_info["precio"] * cantidad, propina=0, tipodecambio=1
     )
 
     return Response(
-        {"Mensaje": f"Folio: {folio} ajustado por: {producto_info['id']} - ${producto_info['precio'] * cantidad} - #{cantidad}"}, status=status.HTTP_200_OK
+        {
+            "Mensaje": f"Folio: {folio} ajustado por: {producto_info['id']} - ${producto_info['precio'] * cantidad} - #{cantidad}"
+        },
+        status=status.HTTP_200_OK,
     )
 
 
@@ -215,6 +237,7 @@ def listar_tempcheques(request):
     serializer = TempchequesSerializer(tempcheques, many=True)
     return Response(serializer.data)
 
+
 # Ver todos los grupos
 @api_view(["GET"])
 def listar_grupos(request):
@@ -222,13 +245,16 @@ def listar_grupos(request):
     serializer = GruposSerializer(grupos, many=True)
     return Response(serializer.data)
 
+
 # Buscar producto por ID
 @api_view(["GET"])
 def buscar_producto(request, idproducto: str):
     producto = Productos.objects.filter(idproducto=idproducto).first()
     idgrupo = producto.idgrupo if producto else None
     if not producto:
-        return Response({"error": "Producto no encontrado"}, status=status.HTTP_404_NOT_FOUND)
+        return Response(
+            {"error": "Producto no encontrado"}, status=status.HTTP_404_NOT_FOUND
+        )
     return Response({
         "idproducto": producto.idproducto,
         "descripcion": producto.descripcion,
